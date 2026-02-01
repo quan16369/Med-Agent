@@ -2,6 +2,7 @@
 Offline RAG System for Medical Guidelines
 Enables retrieval-augmented generation using local medical knowledge base
 Optimized for rural/offline deployment
+Now with automatic knowledge sync when internet available
 """
 
 from typing import List, Dict, Optional, Tuple
@@ -9,22 +10,49 @@ import numpy as np
 from pathlib import Path
 import json
 import pickle
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MedicalKnowledgeBase:
     """
     Local medical knowledge base for offline RAG
     Contains WHO guidelines, drug databases, clinical protocols
+    
+    Now supports:
+    - Automatic updates when internet available
+    - SQLite backend for scalability
+    - Full-text search
+    - Version control
     """
     
-    def __init__(self, kb_path: str = "./data/medical_kb"):
+    def __init__(
+        self,
+        kb_path: str = "./data/medical_kb",
+        use_database: bool = True,
+        auto_sync: bool = True
+    ):
         self.kb_path = Path(kb_path)
-        self.documents = []
-        self.embeddings = None
-        self.index = None
+        self.use_database = use_database
+        self.auto_sync = auto_sync
         
-        # Load knowledge base
-        self._load_kb()
+        # Initialize storage backend
+        if use_database:
+            from .knowledge_sync import KnowledgeDatabase
+            self.db = KnowledgeDatabase(
+                db_path=str(self.kb_path / "knowledge.db"),
+                auto_sync=auto_sync
+            )
+            logger.info("Using SQLite database backend with auto-sync")
+        else:
+            self.db = None
+            self.documents = []
+            self.embeddings = None
+            self.index = None
+            # Load knowledge base from files
+            self._load_kb()
+            logger.info("Using file-based knowledge backend")
     
     def _load_kb(self):
         """Load medical knowledge base from disk"""
@@ -244,6 +272,19 @@ class MedicalKnowledgeBase:
         Returns:
             List of relevant documents with metadata
         """
+        # Use database if available
+        if self.db:
+            try:
+                tables = None
+                if category:
+                    tables = [category if category.endswith('s') else category + 's']
+                
+                results = self.db.search(query, tables=tables, limit=top_k)
+                return self._format_db_results(results)
+            except Exception as e:
+                logger.error(f"Database search failed: {e}, falling back to file search")
+        
+        # Fallback to file-based search
         results = []
         
         # Simple keyword search (in production, use embeddings + vector search)
@@ -539,6 +580,56 @@ Monitoring: {content.get('monitoring', 'Standard')}"""
         
         else:
             return json.dumps(doc, indent=2)
+    
+    def _format_db_results(self, results: List[Dict]) -> List[Dict]:
+        """Format database results to match expected structure"""
+        formatted = []
+        
+        for result in results:
+            doc_type = result.get("type")
+            
+            if doc_type == "guideline":
+                formatted.append({
+                    "type": "guideline",
+                    "category": result.get("category"),
+                    "content": json.loads(result.get("content", "{}")),
+                    "source": result.get("source")
+                })
+            elif doc_type == "drug":
+                formatted.append({
+                    "type": "drug",
+                    "name": result.get("name"),
+                    "content": {
+                        "name": result.get("name"),
+                        "indication": result.get("indication"),
+                        "dosing": result.get("dosing"),
+                        "contraindications": json.loads(result.get("contraindications", "[]")),
+                        "interactions": json.loads(result.get("interactions", "[]")),
+                        "pregnancy_category": result.get("pregnancy_category")
+                    },
+                    "source": "Drug Database"
+                })
+            elif doc_type == "protocol":
+                formatted.append({
+                    "type": "protocol",
+                    "category": result.get("category"),
+                    "content": json.loads(result.get("content", "{}")),
+                    "source": "Clinical Protocol"
+                })
+        
+        return formatted
+    
+    def get_sync_status(self) -> Optional[Dict]:
+        """Get knowledge base sync status"""
+        if self.db:
+            return self.db.get_stats()
+        return None
+    
+    def force_sync(self) -> Dict:
+        """Manually trigger knowledge base sync"""
+        if self.db:
+            return self.db.sync_from_remote(force=True)
+        return {"status": "error", "message": "Database backend not enabled"}
 
 
 if __name__ == "__main__":
