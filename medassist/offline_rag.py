@@ -1,8 +1,14 @@
 """
 Offline RAG System for Medical Guidelines
 Enables retrieval-augmented generation using local medical knowledge base
-Optimized for rural/offline deployment
-Now with automatic knowledge sync when internet available
+Optimized for rural/offline deployment with intelligent data management
+
+Features:
+- Automatic knowledge sync when internet available
+- Database optimization for large-scale data
+- Usage tracking and intelligent pruning
+- Tiered storage (hot/warm/cold data)
+- Automatic archiving of old data
 """
 
 from typing import List, Dict, Optional, Tuple
@@ -11,6 +17,7 @@ from pathlib import Path
 import json
 import pickle
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +32,21 @@ class MedicalKnowledgeBase:
     - SQLite backend for scalability
     - Full-text search
     - Version control
+    - Intelligent data management (pruning, archiving, tiering)
+    - Usage tracking for optimization
     """
     
     def __init__(
         self,
         kb_path: str = "./data/medical_kb",
         use_database: bool = True,
-        auto_sync: bool = True
+        auto_sync: bool = True,
+        enable_optimization: bool = True
     ):
         self.kb_path = Path(kb_path)
         self.use_database = use_database
         self.auto_sync = auto_sync
+        self.enable_optimization = enable_optimization
         
         # Initialize storage backend
         if use_database:
@@ -45,9 +56,69 @@ class MedicalKnowledgeBase:
                 auto_sync=auto_sync
             )
             logger.info("Using SQLite database backend with auto-sync")
+            
+            # Initialize optimizer if enabled
+            if enable_optimization:
+                try:
+                    from .db_optimization import DatabaseOptimizer
+                    self.optimizer = DatabaseOptimizer(
+                        db_path=str(self.kb_path / "knowledge.db"),
+                        archive_dir=str(self.kb_path / "archive")
+                    )
+                    self._setup_optimization()
+                except ImportError:
+                    logger.warning("Database optimization not available")
+                    self.optimizer = None
+            else:
+                self.optimizer = None
         else:
             self.db = None
+            self.optimizer = None
             self.documents = []
+    
+    def _setup_optimization(self):
+        """Setup database optimization on initialization"""
+        if not self.optimizer:
+            return
+        
+        try:
+            # Add tracking columns if not exist
+            self.optimizer.add_tracking_columns()
+            
+            # Analyze current state
+            stats = self.optimizer.analyze_database_size()
+            logger.info(f"Knowledge base: {stats['db_size_mb']:.1f}MB, "
+                       f"{stats.get('guidelines_count', 0)} guidelines, "
+                       f"{stats.get('drugs_count', 0)} drugs")
+            
+            # Get recommendations
+            recommendations = self.optimizer.get_optimization_recommendations()
+            if recommendations:
+                logger.warning("Database optimization recommended:")
+                for rec in recommendations:
+                    logger.warning(f"  - {rec}")
+        except Exception as e:
+            logger.error(f"Optimization setup failed: {e}")
+    
+    def optimize_database(self, prune: bool = False):
+        """
+        Run database optimization
+        
+        Args:
+            prune: Actually delete old data (False = dry run)
+        """
+        if not self.optimizer:
+            logger.warning("Database optimization not enabled")
+            return
+        
+        logger.info(f"Running database optimization (prune={prune})")
+        result = self.optimizer.full_optimization(prune=prune)
+        
+        logger.info(f"Optimization complete: "
+                   f"{result['before']['db_size_mb']:.1f}MB -> "
+                   f"{result['after']['db_size_mb']:.1f}MB")
+        
+        return result
             self.embeddings = None
             self.index = None
             # Load knowledge base from files
