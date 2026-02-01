@@ -22,6 +22,7 @@ from .confidence_aggregator import ConfidenceAggregator
 from .semantic_router import SemanticRouter, ConfidenceEscalator
 from .deep_confidence import TokenConfidenceTracker, ParallelThinkingFilter
 from .monitoring import PerformanceMonitor
+from .adaptive_models import AdaptiveModelSelector, detect_query_complexity, QueryComplexity
 from config import ORCHESTRATOR_CONFIG, WORKFLOW_TEMPLATES
 
 logging.basicConfig(level=logging.INFO)
@@ -98,6 +99,16 @@ class MedAssistOrchestrator:
         self.confidence_escalator = ConfidenceEscalator(confidence_threshold=0.75)
         self.parallel_filter = ParallelThinkingFilter(num_samples=8)
         self.performance_monitor = PerformanceMonitor(window_size=100)
+        
+        # Adaptive multi-model selection (uses full HAI-DEF collection intelligently)
+        import psutil
+        available_ram = psutil.virtual_memory().total / (1024**3) if hasattr(psutil.virtual_memory(), 'total') else 4.0
+        self.model_selector = AdaptiveModelSelector(
+            available_ram_gb=available_ram,
+            max_inference_time_sec=10.0,
+            rural_mode=self.rural_mode
+        )
+        logger.info(f"Adaptive model selector initialized (RAM: {available_ram:.1f}GB, Rural: {self.rural_mode})")
         
         # Orchestrator state
         self.case_history = []
