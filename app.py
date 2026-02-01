@@ -19,16 +19,32 @@ from medassist.tools import MedicalCalculators, LabInterpreter
 orchestrator = None
 
 
-def initialize_system():
-    """Initialize the orchestrator"""
+def initialize_system(rural_mode: bool = False):
+    """Initialize the orchestrator
+    
+    Args:
+        rural_mode: Enable rural/resource-constrained optimizations
+    """
     global orchestrator
     try:
-        orchestrator = MedAssistOrchestrator(
-            model_name="google/medgemma-2b",
-            device="auto",
-            load_in_8bit=True
-        )
-        return "✓ System initialized with MedGemma model"
+        if rural_mode:
+            # Rural mode: CPU-only, 4-bit, offline
+            orchestrator = MedAssistOrchestrator(
+                model_name="google/medgemma-2b",
+                device="cpu",
+                load_in_4bit=True,
+                rural_mode=True,
+                offline_mode=True
+            )
+            return "🌾 Rural mode: System initialized (CPU-only, 4-bit, offline)"
+        else:
+            # Standard mode
+            orchestrator = MedAssistOrchestrator(
+                model_name="google/medgemma-2b",
+                device="auto",
+                load_in_8bit=True
+            )
+            return "✓ System initialized with MedGemma model"
     except Exception as e:
         # Fallback to mock mode
         orchestrator = MedAssistOrchestrator(

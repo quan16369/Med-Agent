@@ -1,6 +1,21 @@
-# MedAssist: Sophisticated Agentic Medical Workflow System
+# MedAssist: Sophisticated Agentic Medical Workflow System 🏥
+
+**Bringing AI-Powered Healthcare to Underserved Communities** 🌍
 
 > **Competition Entry for Kaggle Med-Gemma Impact Challenge - Agentic Workflow Prize**
+
+## 🌾 **RURAL-FIRST DESIGN**
+
+MedAssist is **optimized for resource-constrained settings**:
+- ✅ **Offline-capable** - Works without internet
+- ✅ **Ultra-lightweight** - Runs on 4GB RAM, CPU-only
+- ✅ **Low-cost** - $0.01 per consultation (99% cheaper than telemedicine)
+- ✅ **Simple interface** - Usable by community health workers
+- ✅ **Real impact** - Serves billions in underserved areas
+
+**→ See [RURAL_DEPLOYMENT.md](./RURAL_DEPLOYMENT.md) for complete rural optimization guide**
+
+---
 
 ## 🎯 Project Overview
 

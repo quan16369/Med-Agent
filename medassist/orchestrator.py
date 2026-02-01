@@ -38,7 +38,10 @@ class MedAssistOrchestrator:
         self,
         model_name: str = "google/medgemma-2b",
         device: str = "auto",
-        load_in_8bit: bool = True
+        load_in_8bit: bool = True,
+        load_in_4bit: bool = False,
+        rural_mode: bool = False,
+        offline_mode: bool = False
     ):
         """
         Initialize the sophisticated orchestrator
@@ -47,12 +50,33 @@ class MedAssistOrchestrator:
             model_name: HuggingFace model name or path
             device: Device to run model on
             load_in_8bit: Whether to use 8-bit quantization
+            load_in_4bit: Whether to use 4-bit quantization (for rural/low-resource)
+            rural_mode: Enable optimizations for rural/resource-constrained settings
+            offline_mode: Enable offline-first operation (no internet required)
         """
+        self.model_name = model_name
+        self.device = device
+        self.load_in_8bit = load_in_8bit
+        self.load_in_4bit = load_in_4bit
+        self.rural_mode = rural_mode
+        self.offline_mode = offline_mode
+        
+        # Apply rural optimizations if enabled
+        if self.rural_mode:
+            logger.info("🌾 Rural mode enabled: Optimizing for resource-constrained settings")
+            self.load_in_4bit = True  # Force 4-bit quantization
+            self.offline_mode = True  # Force offline mode
+            if device == "auto":
+                self.device = "cpu"  # Prefer CPU for rural deployment
+            logger.info(f"  - 4-bit quantization: ✓ (50% less RAM)")
+            logger.info(f"  - Offline mode: ✓")
+            logger.info(f"  - Device: {self.device}")
+        
         logger.info("Initializing Advanced MedAssist Orchestrator...")
         
         # Load model and tokenizer
         self.model, self.tokenizer = self._load_model(
-            model_name, device, load_in_8bit
+            model_name, self.device, self.load_in_8bit, self.load_in_4bit
         )
         
         # Initialize specialized agents
