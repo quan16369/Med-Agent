@@ -3,9 +3,9 @@ Adaptive Multi-Model Strategy for Rural/Resource-Constrained Settings
 Uses multiple HAI-DEF models intelligently based on query complexity and available resources
 
 Strategy: Cascade from lightweight to sophisticated models
-- Simple queries → Ultra-light model (fast, low resource)
-- Medium complexity → Standard model (balanced)
-- High complexity → Ensemble/larger model (when resources allow)
+- Simple queries: Ultra-light model (fast, low resource)
+- Medium complexity: Standard model (balanced)
+- High complexity: Ensemble/larger model (when resources allow)
 """
 
 from typing import Dict, List, Optional, Tuple
@@ -341,10 +341,10 @@ def detect_query_complexity(query: str, context: Optional[Dict] = None) -> Query
     Analyze query to determine complexity level
     
     Simple indicators:
-    - Single symptom → SIMPLE
-    - Multiple symptoms, clear pattern → MODERATE
-    - Multiple conditions, drug interactions → COMPLEX
-    - Emergency keywords → CRITICAL
+    - Single symptom = SIMPLE
+    - Multiple symptoms, clear pattern = MODERATE
+    - Multiple conditions, drug interactions = COMPLEX
+    - Emergency keywords = CRITICAL
     """
     
     query_lower = query.lower()
@@ -384,13 +384,13 @@ ACCURACY_RESOURCE_MATRIX = {
     "Simple Query": {
         "medgemma-1b": {"accuracy": "80%", "time": "2s", "ram": "1GB"},
         "medgemma-2b": {"accuracy": "85%", "time": "4s", "ram": "2GB"},
-        "gain_2b_vs_1b": "+5% accuracy, 2x time, 2x RAM → NOT WORTH IT for simple queries"
+        "gain_2b_vs_1b": "+5% accuracy, 2x time, 2x RAM = NOT WORTH IT for simple queries"
     },
     
     "Moderate Query": {
         "medgemma-1b": {"accuracy": "72%", "time": "3s", "ram": "1GB"},
         "medgemma-2b": {"accuracy": "87%", "time": "5s", "ram": "2GB"},
-        "gain_2b_vs_1b": "+15% accuracy → WORTH IT, use 2B"
+        "gain_2b_vs_1b": "+15% accuracy = WORTH IT, use 2B"
     },
     
     "Complex Query": {
@@ -439,7 +439,7 @@ if __name__ == "__main__":
         
         selection = selector.select_model(query, complexity, urgency)
         
-        print(f"\n→ Selected: {selection['primary_model']}")
+        print(f"\nSelected: {selection['primary_model']}")
         print(f"  Strategy: {selection['strategy']}")
         print(f"  Reasoning: {selection['reasoning']}")
         if selection['fallback_model']:

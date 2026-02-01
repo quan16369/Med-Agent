@@ -224,7 +224,7 @@ class ParallelThinkingFilter:
             filtered = traces
         
         self.logger.info(
-            f"Filtered {len(traces)} → {len(filtered)} traces "
+            f"Filtered {len(traces)} to {len(filtered)} traces "
             f"(mode={mode})"
         )
         
@@ -346,7 +346,7 @@ class ParallelThinkingFilter:
         token_savings = 1.0 - (len(filtered_traces) / len(all_traces))
         self.logger.info(
             f"Token savings: {token_savings:.1%} "
-            f"({len(all_traces)} → {len(filtered_traces)} traces)"
+            f"({len(all_traces)} to {len(filtered_traces)} traces)"
         )
         
         # 3. Extract answers from traces

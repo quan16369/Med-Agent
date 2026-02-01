@@ -1,6 +1,8 @@
 """
-Gradio Demo Application for MedAssist
-Interactive web interface for the agentic medical workflow system
+MedAssist - Gradio Demo Application
+
+Interactive web interface for the agentic medical workflow system.
+Provides clinical case processing, medical calculators, and lab interpretation.
 """
 
 import gradio as gr
@@ -36,7 +38,7 @@ def initialize_system(rural_mode: bool = False):
                 rural_mode=True,
                 offline_mode=True
             )
-            return "🌾 Rural mode: System initialized (CPU-only, 4-bit, offline)"
+            return "Rural mode: System initialized (CPU-only, 4-bit, offline)"
         else:
             # Standard mode
             orchestrator = MedAssistOrchestrator(
@@ -44,7 +46,7 @@ def initialize_system(rural_mode: bool = False):
                 device="auto",
                 load_in_8bit=True
             )
-            return "✓ System initialized with MedGemma model"
+            return "System initialized with MedGemma model"
     except Exception as e:
         # Fallback to mock mode
         orchestrator = MedAssistOrchestrator(
@@ -52,7 +54,7 @@ def initialize_system(rural_mode: bool = False):
             device="cpu",
             load_in_8bit=False
         )
-        return f"⚠ Running in demo mode (model not loaded): {str(e)}"
+        return f"WARNING: Running in demo mode (model not loaded): {str(e)}"
 
 
 def process_patient_case(
@@ -258,19 +260,18 @@ def create_demo():
     
     with gr.Blocks(title="MedAssist - Agentic Medical Workflow", theme=gr.themes.Soft()) as demo:
         gr.Markdown("""
-        # 🏥 MedAssist: Agentic Medical Workflow System
+        # MedAssist: Agentic Medical Workflow System
         
-        **Kaggle Med-Gemma Impact Challenge - Agentic Workflow Prize Entry**
-        
-        This demo showcases an intelligent multi-agent system that reimagines clinical workflows 
-        using MedGemma and coordinated AI agents.
+        An intelligent multi-agent system for clinical workflow automation.
+        Coordinates specialized AI agents to provide comprehensive medical assistance
+        using MedGemma as the foundation model.
         
         ---
         """)
         
         # System status
         with gr.Row():
-            init_btn = gr.Button("🔄 Initialize System", variant="primary")
+            init_btn = gr.Button("Initialize System", variant="primary")
             status_text = gr.Textbox(label="System Status", value="Not initialized", interactive=False)
         
         init_btn.click(fn=initialize_system, outputs=status_text)
@@ -278,7 +279,7 @@ def create_demo():
         gr.Markdown("---")
         
         # Main workflow interface
-        with gr.Tab("🔍 Clinical Case Processing"):
+        with gr.Tab("Clinical Case Processing"):
             gr.Markdown("""
             ### Process a Patient Case
             Enter patient information below. The system will coordinate multiple specialized agents 
@@ -322,7 +323,7 @@ def create_demo():
                     placeholder="e.g., Penicillin, Sulfa drugs"
                 )
             
-            process_btn = gr.Button("🚀 Process Case", variant="primary", size="lg")
+            process_btn = gr.Button("Process Case", variant="primary", size="lg")
             
             gr.Markdown("### Results")
             
@@ -332,10 +333,10 @@ def create_demo():
                 with gr.Column():
                     treatment_output = gr.Markdown(label="Treatment Plan")
             
-            with gr.Accordion("🧠 Agent Reasoning Trace", open=False):
+            with gr.Accordion("Agent Reasoning Trace", open=False):
                 reasoning_output = gr.Markdown()
             
-            with gr.Accordion("📄 Full JSON Output", open=False):
+            with gr.Accordion("Full JSON Output", open=False):
                 json_output = gr.Code(language="json")
             
             process_btn.click(
@@ -349,7 +350,7 @@ def create_demo():
             )
             
             # Example cases
-            gr.Markdown("### 📋 Example Cases")
+            gr.Markdown("### Example Cases")
             
             gr.Examples(
                 examples=[
@@ -364,7 +365,7 @@ def create_demo():
             )
         
         # Medical calculators tab
-        with gr.Tab("🧮 Medical Calculators"):
+        with gr.Tab("Medical Calculators"):
             gr.Markdown("### Clinical Calculation Tools")
             
             with gr.Row():
@@ -415,7 +416,7 @@ def create_demo():
                     )
         
         # About tab
-        with gr.Tab("ℹ️ About"):
+        with gr.Tab("About"):
             gr.Markdown("""
             ## About MedAssist
             
@@ -433,11 +434,11 @@ def create_demo():
             
             ### Key Features
             
-            - ✅ Multi-agent coordination with clear task delegation
-            - ✅ Transparent reasoning and decision traces
-            - ✅ Tool integration (calculators, lab interpretation, guidelines)
-            - ✅ Privacy-first local processing
-            - ✅ Modular and extensible architecture
+            - Multi-agent coordination with clear task delegation
+            - Transparent reasoning and decision traces
+            - Tool integration (calculators, lab interpretation, guidelines)
+            - Privacy-first local processing
+            - Modular and extensible architecture
             
             ### Technology Stack
             
@@ -446,22 +447,20 @@ def create_demo():
             - **Interface**: Gradio
             - **Tools**: Medical calculators, lab interpreters, guideline databases
             
-            ### Competition Entry
+            ### System Capabilities
             
-            This is an entry for the **Kaggle Med-Gemma Impact Challenge - Agentic Workflow Prize**.
-            
-            The system demonstrates:
-            1. Complex workflow reimagination through multi-agent collaboration
-            2. Intelligent agent deployment using MedGemma
-            3. Tool integration for enhanced functionality
-            4. Significant efficiency improvements (60% faster diagnostic workflow)
-            5. Real-world clinical applicability
+            The system provides:
+            1. Complex workflow automation through multi-agent collaboration
+            2. Intelligent task routing and delegation using specialized agents
+            3. Integration with medical tools and calculators
+            4. Efficient diagnostic workflow processing
+            5. Transparent reasoning and audit trails for clinical decisions
             
             ### Links
             
-            - 📹 [Video Demo](link-to-video)
-            - 💻 [Source Code](https://github.com/your-repo)
-            - 📄 [Technical Writeup](link-to-writeup)
+            - [Source Code](https://github.com/quan16369/Med-Agent)
+            - [Documentation](https://github.com/quan16369/Med-Agent/blob/master/README.md)
+            - [Rural Deployment Guide](https://github.com/quan16369/Med-Agent/blob/master/RURAL_DEPLOYMENT.md)
             
             ---
             

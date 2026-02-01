@@ -393,7 +393,7 @@ Workflow Types:
             report += f"    Avg Duration: {perf['complex']['avg_duration']:.2f}s\n"
             report += f"    Avg Confidence: {perf['complex']['avg_confidence']:.2%}\n"
         
-        report += "\n⚡ AGENT PERFORMANCE\n"
+        report += "\nAGENT PERFORMANCE\n"
         for agent_name, metrics in agent_perf.items():
             report += f"\n{agent_name}:\n"
             report += f"  Invocations: {metrics['invocations']}\n"
@@ -402,7 +402,7 @@ Workflow Types:
             report += f"  Avg Confidence: {metrics['avg_confidence']:.2%}\n"
             report += f"  Avg Reasoning Steps: {metrics['reasoning_steps_avg']:.1f}\n"
         
-        report += "\n⚠️  BOTTLENECK ANALYSIS\n"
+        report += "\nBOTTLENECK ANALYSIS\n"
         if bottlenecks.get('bottlenecks'):
             for bottleneck in bottlenecks['bottlenecks']:
                 report += f"\n{bottleneck['agent']}: {bottleneck['issue']}\n"

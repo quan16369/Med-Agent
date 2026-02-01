@@ -318,7 +318,7 @@ class ConfidenceEscalator:
         self.confidence_threshold = confidence_threshold
         self.logger = logging.getLogger(__name__)
         
-        # Agent hierarchy (fast → slow, simple → complex)
+        # Agent hierarchy (fast to slow, simple to complex)
         self.agent_hierarchy = [
             'history',      # Fastest, simplest
             'treatment',    # Fast, moderate complexity

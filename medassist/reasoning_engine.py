@@ -144,7 +144,7 @@ class ReActReasoner:
     ) -> str:
         """Build prompt for next thought"""
         prompt_parts = [
-            "Use ReAct reasoning pattern (Thought → Action → Observation).",
+            "Use ReAct reasoning pattern (Thought, Action, Observation).",
             "",
             f"Question: {query}",
             ""

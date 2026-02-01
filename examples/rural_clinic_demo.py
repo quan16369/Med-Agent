@@ -28,16 +28,16 @@ def rural_clinic_scenario():
     - Limited diagnostic equipment
     """
     
-    print_section("🌾 RURAL CLINIC DEMONSTRATION")
+    print_section("RURAL CLINIC DEMONSTRATION")
     
-    print("📍 Setting: Remote health post, 4 hours from nearest hospital")
-    print("💻 Hardware: Basic laptop (4GB RAM, no GPU)")
-    print("📡 Connectivity: OFFLINE (no internet)")
-    print("👤 User: Community health worker")
+    print("Setting: Remote health post, 4 hours from nearest hospital")
+    print("Hardware: Basic laptop (4GB RAM, no GPU)")
+    print("Connectivity: OFFLINE (no internet)")
+    print("User: Community health worker")
     print("\n")
     
     # Initialize in rural mode
-    print("⚙️  Initializing MedAssist in RURAL MODE...")
+    print("Initializing MedAssist in RURAL MODE...")
     print("   - 4-bit quantization (50% less RAM)")
     print("   - CPU-only operation")
     print("   - Offline-first architecture")
@@ -51,16 +51,16 @@ def rural_clinic_scenario():
             rural_mode=True,
             offline_mode=True
         )
-        print("✅ System ready! Memory usage: < 4GB\n")
+        print("System ready! Memory usage: < 4GB\n")
     except Exception as e:
-        print(f"⚠️  Running in demo mode: {e}\n")
+        print(f"WARNING: Running in demo mode: {e}\n")
         orchestrator = MedAssistOrchestrator(
             model_name="mock",
             device="cpu"
         )
     
     # Case 1: Malaria Suspicion (Common Rural Disease)
-    print_section("📋 CASE 1: Suspected Malaria")
+    print_section("CASE 1: Suspected Malaria")
     
     case1 = {
         "patient_id": "RURAL-2026-001",
@@ -93,25 +93,25 @@ def rural_clinic_scenario():
     print(f"Patient: {case1['age']}yo {case1['gender']}")
     print(f"Symptoms: {', '.join(case1['symptoms'][:3])}")
     print(f"Temperature: {case1['vital_signs']['temperature']}")
-    print(f"\n🔬 Running diagnostic workflow...\n")
+    print(f"\nRunning diagnostic workflow...\n")
     
     # Process case
     result1 = process_rural_case(orchestrator, case1)
     
-    print("\n📊 ASSESSMENT:")
+    print("\nASSESSMENT:")
     print(f"   Likely Diagnosis: {result1['diagnosis']}")
     print(f"   Confidence: {result1['confidence']}")
     print(f"   Urgency: {result1['urgency']}")
     
-    print("\n💊 TREATMENT PLAN:")
+    print("\nTREATMENT PLAN:")
     for step in result1['treatment']:
         print(f"   • {step}")
     
-    print(f"\n⚠️  RED FLAGS: {result1['red_flags']}")
-    print(f"\n🏥 REFERRAL NEEDED: {result1['referral_needed']}")
+    print(f"\nRED FLAGS: {result1['red_flags']}")
+    print(f"\nREFERRAL NEEDED: {result1['referral_needed']}")
     
     # Case 2: Pregnancy Complication (High-Risk)
-    print_section("📋 CASE 2: Prenatal Emergency")
+    print_section("CASE 2: Prenatal Emergency")
     
     case2 = {
         "patient_id": "RURAL-2026-002",
@@ -137,24 +137,24 @@ def rural_clinic_scenario():
     }
     
     print(f"Patient: {case2['age']}yo {case2['gender']}, 32 weeks pregnant")
-    print(f"⚠️  ALERT: {case2['chief_complaint']}")
+    print(f"ALERT: {case2['chief_complaint']}")
     print(f"BP: {case2['vital_signs']['blood_pressure']} (LOW)")
-    print(f"\n🚨 URGENT evaluation...\n")
+    print(f"\nURGENT evaluation...\n")
     
     result2 = process_rural_case(orchestrator, case2)
     
-    print("\n🚨 EMERGENCY ASSESSMENT:")
+    print("\nEMERGENCY ASSESSMENT:")
     print(f"   Classification: {result2['urgency']}")
     print(f"   Danger Signs: {', '.join(result2['danger_signs'])}")
     
-    print("\n⚡ IMMEDIATE ACTIONS:")
+    print("\nIMMEDIATE ACTIONS:")
     for action in result2['immediate_actions']:
-        print(f"   🔴 {action}")
+        print(f"   [!] {action}")
     
-    print(f"\n🚁 EVACUATION: {result2['evacuation']}")
+    print(f"\nEVACUATION: {result2['evacuation']}")
     
     # Case 3: Common Cold (Can Be Managed Locally)
-    print_section("📋 CASE 3: Upper Respiratory Infection")
+    print_section("CASE 3: Upper Respiratory Infection")
     
     case3 = {
         "patient_id": "RURAL-2026-003",
@@ -185,24 +185,24 @@ def rural_clinic_scenario():
     print(f"Patient: {case3['age']}yo {case3['gender']}")
     print(f"Symptoms: {', '.join(case3['symptoms'])}")
     print(f"Temperature: {case3['vital_signs']['temperature']} (mild fever)")
-    print(f"\n🔬 Running assessment...\n")
+    print(f"\nRunning assessment...\n")
     
     result3 = process_rural_case(orchestrator, case3)
     
-    print("\n📊 ASSESSMENT:")
+    print("\nASSESSMENT:")
     print(f"   Diagnosis: {result3['diagnosis']}")
     print(f"   Severity: {result3['severity']}")
-    print(f"   Can be managed locally: YES ✓")
+    print(f"   Can be managed locally: YES")
     
-    print("\n💊 HOME TREATMENT:")
+    print("\nHOME TREATMENT:")
     for step in result3['treatment']:
         print(f"   • {step}")
     
-    print(f"\n🏥 Hospital referral needed: {result3['referral_needed']}")
-    print(f"\n⏰ Follow-up: {result3['follow_up']}")
+    print(f"\nHospital referral needed: {result3['referral_needed']}")
+    print(f"\nFollow-up: {result3['follow_up']}")
     
     # Summary Statistics
-    print_section("📈 IMPACT SUMMARY")
+    print_section("IMPACT SUMMARY")
     
     print("Cases Processed: 3")
     print("├─ Emergency (referred): 1 (33%)")
@@ -215,12 +215,12 @@ def rural_clinic_scenario():
     print(f"├─ Cost per consultation: $0.01")
     print(f"└─ Lives potentially saved: 1 (emergency detected)\n")
     
-    print("💰 Cost Comparison:")
+    print("Cost Comparison:")
     print("├─ Traditional telemedicine: 3 × $30 = $90")
     print("├─ MedAssist: 3 × $0.01 = $0.03")
     print("└─ Savings: $89.97 (99.97%)\n")
     
-    print("✅ System demonstrates:")
+    print("System demonstrates:")
     print("   • Appropriate triage (emergency vs routine)")
     print("   • Resource-aware recommendations")
     print("   • Clear danger sign recognition")
@@ -302,7 +302,7 @@ def generate_demo_response(case_data):
         return {
             "diagnosis": "Suspected malaria",
             "confidence": "High (based on symptoms + local prevalence)",
-            "urgency": "⚠️  MODERATE",
+            "urgency": "MODERATE",
             "severity": "Moderate",
             "treatment": [
                 "Perform malaria rapid diagnostic test",
@@ -338,10 +338,10 @@ def generate_demo_response(case_data):
 
 
 if __name__ == "__main__":
-    print("\n" + "🌾"*30)
+    print("\n" + "="*60)
     print("  MedAssist Rural Clinic Demonstration")
     print("  Optimized for Resource-Constrained Settings")
-    print("🌾"*30)
+    print("="*60)
     
     rural_clinic_scenario()
     

@@ -64,13 +64,13 @@ class MedAssistOrchestrator:
         
         # Apply rural optimizations if enabled
         if self.rural_mode:
-            logger.info("🌾 Rural mode enabled: Optimizing for resource-constrained settings")
+            logger.info("Rural mode enabled: Optimizing for resource-constrained settings")
             self.load_in_4bit = True  # Force 4-bit quantization
             self.offline_mode = True  # Force offline mode
             if device == "auto":
                 self.device = "cpu"  # Prefer CPU for rural deployment
-            logger.info(f"  - 4-bit quantization: ✓ (50% less RAM)")
-            logger.info(f"  - Offline mode: ✓")
+            logger.info(f"  - 4-bit quantization enabled (50% less RAM)")
+            logger.info(f"  - Offline mode enabled")
             logger.info(f"  - Device: {self.device}")
         
         logger.info("Initializing Advanced MedAssist Orchestrator...")

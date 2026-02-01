@@ -50,7 +50,7 @@ def example_1_simple_case():
         for i, dx in enumerate(assessment['diagnosis'].get('differential', [])[:3], 1):
             print(f"  {i}. {dx}")
     
-    print("\n💊 TREATMENT PLAN:")
+    print("\nTREATMENT PLAN:")
     if assessment['treatment_plan']:
         meds = assessment['treatment_plan'].get('medications', [])
         if meds:
@@ -95,7 +95,7 @@ def example_2_complex_case():
     assessment = result['final_assessment']
     print(assessment.get('summary', 'No summary available'))
     
-    print("\n⚠️  URGENCY:")
+    print("\nURGENCY:")
     if 'diagnosis' in assessment and 'urgency' in assessment['diagnosis']:
         print(assessment['diagnosis']['urgency'])
     
@@ -142,7 +142,7 @@ def example_3_using_tools():
     
     results = LabInterpreter.interpret_panel(labs, gender="male")
     for result in results:
-        status = "✓" if result['interpretation'] == "Normal" else "⚠"
+        status = "OK" if result['interpretation'] == "Normal" else "ALERT"
         print(f"{status} {result['test']}: {result['value']} {result['unit']} - {result['interpretation']}")
     
     print()
@@ -224,7 +224,7 @@ def example_5_json_export():
     with open(output_file, 'w') as f:
         json.dump(result, f, indent=2)
     
-    print(f"\n✓ Results exported to {output_file}")
+    print(f"\nResults exported to {output_file}")
     print(f"  Case ID: {result['case_id']}")
     print(f"  Workflow: {result['workflow']}")
     print(f"  Steps completed: {len(result['steps'])}")

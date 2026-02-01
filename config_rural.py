@@ -7,14 +7,14 @@ Optimized for CPU-only, low RAM, and offline deployment
 LOW_RESOURCE_CONFIG = {
     # Use smaller model or quantized version
     "model_name": "google/medgemma-2b",  # Already small at 2B params
-    "quantization": "4bit",  # 4-bit quantization (vs 8-bit) → 50% less RAM
+    "quantization": "4bit",  # 4-bit quantization (vs 8-bit) = 50% less RAM
     "device": "cpu",  # CPU-only for areas without GPU
     "max_memory": {
         "cpu": "4GB"  # Work on machines with just 4GB RAM
     },
     
     # Reduce batch size and context
-    "max_length": 512,  # Shorter context → faster inference
+    "max_length": 512,  # Shorter context = faster inference
     "batch_size": 1,
     "num_beams": 1,  # Greedy decoding instead of beam search
     
