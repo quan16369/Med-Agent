@@ -23,6 +23,7 @@ from .semantic_router import SemanticRouter, ConfidenceEscalator
 from .deep_confidence import TokenConfidenceTracker, ParallelThinkingFilter
 from .monitoring import PerformanceMonitor
 from .adaptive_models import AdaptiveModelSelector, detect_query_complexity, QueryComplexity
+from .offline_rag import OfflineRAG
 from config import ORCHESTRATOR_CONFIG, WORKFLOW_TEMPLATES
 
 logging.basicConfig(level=logging.INFO)
@@ -109,6 +110,17 @@ class MedAssistOrchestrator:
             rural_mode=self.rural_mode
         )
         logger.info(f"Adaptive model selector initialized (RAM: {available_ram:.1f}GB, Rural: {self.rural_mode})")
+        
+        # Offline RAG system for knowledge augmentation
+        if not self.rural_mode or self.offline_mode:
+            try:
+                self.rag = OfflineRAG()
+                logger.info("Offline RAG system initialized")
+            except Exception as e:
+                logger.warning(f"RAG initialization failed: {e}. Continuing without RAG.")
+                self.rag = None
+        else:
+            self.rag = None
         
         # Orchestrator state
         self.case_history = []
