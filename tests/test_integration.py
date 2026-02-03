@@ -1,234 +1,203 @@
 """
-Integration tests for MedAssist system
-Tests complete workflows and component interactions
+Integration tests for the agentic medical workflow system.
+Tests end-to-end functionality of all components.
 """
 
 import pytest
-import time
-from unittest.mock import Mock, patch
 import sys
 import os
 
 # Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from medassist.agentic_orchestrator import AgenticMedicalOrchestrator
+from medassist.knowledge_graph import MedicalKnowledgeGraph
+from medassist.config import get_config
+from medassist.exceptions import MedAssistError
 
-class TestRuralDeployment:
-    """Test rural deployment scenarios"""
+class TestAgenticWorkflow:
+    """Test agentic workflow end-to-end"""
     
-    def test_offline_mode(self):
-        """Test system works in offline mode"""
-        from medassist.offline_rag import OfflineRAG
-        
-        rag = OfflineRAG()
-        
-        # Should work without internet
-        result = rag.augment_query("malaria treatment")
+    @pytest.fixture
+    def orchestrator(self):
+        """Create orchestrator instance"""
+        return AgenticMedicalOrchestrator()
+    
+    def test_orchestrator_initialization(self, orchestrator):
+        """Test that orchestrator initializes all components"""
+        assert orchestrator is not None
+        assert orchestrator.kg is not None
+        assert orchestrator.graph_retriever is not None
+        assert orchestrator.ner is not None
+        assert orchestrator.pubmed is not None
+        assert orchestrator.orchestrator_agent is not None
+    
+    def test_simple_medical_query(self, orchestrator):
+        """Test basic medical question"""
+        question = "What causes diabetes and how is it treated?"
+        result = orchestrator.execute_workflow(question)
         
         assert result is not None
-        assert "knowledge" in result
+        assert "answer" in result
+        assert "confidence" in result
+        assert len(result["answer"]) > 0
+        assert 0.0 <= result["confidence"] <= 1.0
     
-    def test_low_resource_inference(self):
-        """Test inference on low-resource device"""
-        # Simulate low RAM environment
-        import psutil
-        
-        memory = psutil.virtual_memory()
-        
-        # System should detect available memory
-        assert memory.available > 0
-        
-        # Should select appropriate model based on resources
-        from medassist.adaptive_models import AdaptiveModelSelector
-        
-        selector = AdaptiveModelSelector()
-        model = selector.select_model("simple query", {"complexity": "low"})
-        
-        assert model  # Should select a model
-
-
-class TestHybridMode:
-    """Test hybrid online/offline operation"""
-    
-    @patch('medassist.cloud_services.CloudAPIClient.check_connection')
-    def test_online_mode(self, mock_check):
-        """Test system in online mode"""
-        mock_check.return_value = True
-        
-        from medassist.hybrid_orchestrator import HybridOrchestrator
-        
-        # Should initialize successfully
-        assert True  # Placeholder - would test actual orchestrator
-    
-    @patch('medassist.cloud_services.CloudAPIClient.check_connection')
-    def test_offline_fallback(self, mock_check):
-        """Test fallback to offline mode"""
-        mock_check.return_value = False
-        
-        from medassist.hybrid_orchestrator import HybridOrchestrator
-        
-        # Should fallback to offline mode
-        assert True  # Placeholder
-
-
-class TestErrorRecovery:
-    """Test error recovery scenarios"""
-    
-    def test_model_failure_recovery(self):
-        """Test recovery from model failure"""
-        from medassist.error_handling import ErrorRecovery
-        
-        result = ErrorRecovery.recover_from_model_error(
-            Exception("Model failed")
-        )
+    def test_symptom_based_query(self, orchestrator):
+        """Test symptom-based diagnostic question"""
+        question = "Patient has fever and cough. What could be the diagnosis?"
+        result = orchestrator.execute_workflow(question)
         
         assert result is not None
-        assert "fallback" in result
+        assert "answer" in result
+        # Check that answer contains medical reasoning
+        assert len(result["answer"]) > 50
     
-    def test_database_failure_recovery(self):
-        """Test recovery from database failure"""
-        from medassist.error_handling import ErrorRecovery
-        
-        result = ErrorRecovery.recover_from_database_error(
-            Exception("DB connection failed")
-        )
+    def test_treatment_query(self, orchestrator):
+        """Test treatment recommendation question"""
+        question = "What are the treatment options for hypertension?"
+        result = orchestrator.execute_workflow(question)
         
         assert result is not None
-        assert "fallback" in result
-
-
-class TestHealthChecks:
-    """Test health check system"""
+        assert "answer" in result
+        # Should provide treatment information
+        answer_lower = result["answer"].lower()
+        assert any(word in answer_lower for word in ["treatment", "medication", "therapy"])
     
-    def test_liveness_check(self):
-        """Test liveness probe"""
-        from medassist.health_checks import HealthChecker
+    def test_workflow_trace(self, orchestrator):
+        """Test that workflow generates trace"""
+        question = "What is the relationship between obesity and diabetes?"
+        result = orchestrator.execute_workflow(question)
         
-        checker = HealthChecker()
-        status = checker.check_liveness()
-        
-        assert status.healthy
-        assert status.status == "healthy"
+        assert "trace" in result
+        assert len(result["trace"]) > 0
+        # Trace should have agent information
+        first_step = result["trace"][0]
+        assert "agent" in first_step
+        assert "action" in first_step
     
-    def test_readiness_check(self):
-        """Test readiness probe"""
-        from medassist.health_checks import HealthChecker
+    def test_statistics_generation(self, orchestrator):
+        """Test that statistics are generated"""
+        question = "What causes asthma?"
+        result = orchestrator.execute_workflow(question)
         
-        checker = HealthChecker()
-        status = checker.check_readiness()
+        assert "statistics" in result
+        stats = result["statistics"]
+        assert len(stats) > 0
+        # Check statistics structure
+        assert all("agent_name" in s for s in stats)
+        assert all("calls" in s for s in stats)
+
+class TestKnowledgeGraph:
+    """Test knowledge graph functionality"""
+    
+    @pytest.fixture
+    def kg(self):
+        """Create knowledge graph instance"""
+        return MedicalKnowledgeGraph()
+    
+    def test_kg_initialization(self, kg):
+        """Test knowledge graph initializes"""
+        assert kg is not None
+    
+    def test_add_and_query_entity(self, kg):
+        """Test adding and querying entities"""
+        # Add test entity
+        kg.add_entity("TestDisease", "Disease")
         
-        # May be healthy or degraded depending on system state
-        assert status.status in ["healthy", "degraded", "unhealthy"]
+        # Query should find it
+        results = kg.query_entity("TestDisease")
+        assert results is not None
+    
+    def test_add_relationship(self, kg):
+        """Test adding relationships"""
+        kg.add_entity("TestDisease1", "Disease")
+        kg.add_entity("TestSymptom1", "Symptom")
+        kg.add_relationship("TestDisease1", "HAS_SYMPTOM", "TestSymptom1")
+        
+        # Should be able to query relationship
+        results = kg.query_entity("TestDisease1")
+        assert results is not None
 
+class TestConfiguration:
+    """Test configuration management"""
+    
+    def test_config_loads(self):
+        """Test that configuration loads"""
+        config = get_config()
+        assert config is not None
+        assert config.model is not None
+        assert config.retrieval is not None
+        assert config.logging is not None
+    
+    def test_config_values(self):
+        """Test configuration has valid values"""
+        config = get_config()
+        
+        # Model config
+        assert config.model.device in ["cuda", "cpu"]
+        assert config.model.max_length > 0
+        
+        # Retrieval config
+        assert config.retrieval.max_depth > 0
+        assert config.retrieval.max_width > 0
+        assert 0.0 <= config.retrieval.confidence_threshold <= 1.0
 
+class TestErrorHandling:
+    """Test error handling"""
+    
+    def test_empty_question_handling(self):
+        """Test handling of empty questions"""
+        orchestrator = AgenticMedicalOrchestrator()
+        
+        # Empty question should be handled gracefully
+        result = orchestrator.execute_workflow("")
+        assert result is not None
+        # Should still return some response
+        assert "answer" in result
+    
+    def test_invalid_question_handling(self):
+        """Test handling of nonsensical questions"""
+        orchestrator = AgenticMedicalOrchestrator()
+        
+        # Nonsensical question
+        result = orchestrator.execute_workflow("asdfghjkl qwerty")
+        assert result is not None
+        assert "answer" in result
+
+@pytest.mark.slow
 class TestPerformance:
-    """Test performance requirements"""
+    """Performance tests (marked slow)"""
     
-    def test_query_latency(self):
-        """Test query processing latency"""
-        from medassist.semantic_router import SemanticRouter
+    def test_query_response_time(self):
+        """Test that queries complete in reasonable time"""
+        import time
         
-        router = SemanticRouter()
+        orchestrator = AgenticMedicalOrchestrator()
+        question = "What causes diabetes?"
         
         start = time.time()
-        result = router.route("What is malaria?")
-        latency = time.time() - start
+        result = orchestrator.execute_workflow(question)
+        duration = time.time() - start
         
-        # Routing should be fast (<100ms)
-        assert latency < 0.1
+        assert result is not None
+        # Should complete within 30 seconds
+        assert duration < 30.0
     
-    def test_concurrent_requests(self):
-        """Test handling multiple concurrent requests"""
-        from medassist.semantic_router import SemanticRouter
-        
-        router = SemanticRouter()
-        
-        # Simulate concurrent requests
-        queries = [
-            "What is malaria?",
-            "Fever treatment",
-            "Diabetes management"
+    def test_multiple_queries(self):
+        """Test multiple sequential queries"""
+        orchestrator = AgenticMedicalOrchestrator()
+        questions = [
+            "What causes diabetes?",
+            "How is hypertension treated?",
+            "What are symptoms of asthma?"
         ]
         
-        start = time.time()
-        for query in queries:
-            router.route(query)
-        elapsed = time.time() - start
-        
-        # Should handle multiple requests efficiently
-        assert elapsed < 1.0
-
-
-class TestScalability:
-    """Test scalability features"""
-    
-    def test_configuration_loading(self):
-        """Test configuration loading for different environments"""
-        from config_production import get_config
-        
-        # Development config
-        dev_config = get_config("development")
-        assert dev_config.environment == "development"
-        
-        # Production config
-        prod_config = get_config("production")
-        assert prod_config.environment == "production"
-    
-    def test_logging_setup(self):
-        """Test logging configuration"""
-        from medassist.logging_setup import setup_logging
-        
-        # Should setup without errors
-        setup_logging(
-            log_level="INFO",
-            log_format="json",
-            log_file="./logs/test.log"
-        )
-        
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        # Should be able to log
-        logger.info("Test message")
-
-
-class TestSecurity:
-    """Test security features"""
-    
-    def test_audit_logging(self):
-        """Test audit logging"""
-        from medassist.logging_setup import AuditLogger
-        
-        audit = AuditLogger(log_file="./logs/test_audit.log")
-        
-        # Should log without errors
-        audit.log_access("user123", "view_case", "case_456", True)
-        audit.log_auth_event("user123", "login", True, "127.0.0.1")
-    
-    def test_configuration_validation(self):
-        """Test configuration validation"""
-        from config_production import ProductionConfig
-        
-        config = ProductionConfig()
-        
-        # Should validate successfully
-        assert config.validate() in [True, False]  # May fail if dirs don't exist
-
-
-class TestDataPersistence:
-    """Test data persistence"""
-    
-    def test_knowledge_base_persistence(self):
-        """Test knowledge base persists data"""
-        # Test would check if SQLite DB persists correctly
-        assert True  # Placeholder
-    
-    def test_cache_persistence(self):
-        """Test cache persistence"""
-        # Test would check if cache works correctly
-        assert True  # Placeholder
-
+        for question in questions:
+            result = orchestrator.execute_workflow(question)
+            assert result is not None
+            assert "answer" in result
 
 if __name__ == "__main__":
-    # Run integration tests
-    pytest.main([__file__, "-v", "--tb=short", "-s"])
+    # Run tests
+    pytest.main([__file__, "-v", "--tb=short"])

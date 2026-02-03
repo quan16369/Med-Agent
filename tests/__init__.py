@@ -1,1 +1,1 @@
-"""Test package initialization"""
+# Empty tests/__init__.py

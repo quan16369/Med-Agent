@@ -1,300 +1,399 @@
-# MedAssist: Sophisticated Agentic Medical Workflow System 🏥
+# Medical Knowledge Assistant
 
-**Bringing AI-Powered Healthcare to Underserved Communities** 🌍
+Production-ready multi-agent workflow system for medical question answering with knowledge graph reasoning.
 
-> **Competition Entry for Kaggle Med-Gemma Impact Challenge - Agentic Workflow Prize**
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 
-## 🌾 **RURAL-FIRST DESIGN**
+## Quick Links
 
-MedAssist is **optimized for resource-constrained settings**:
-- ✅ **Offline-capable** - Works without internet
-- ✅ **Ultra-lightweight** - Runs on 4GB RAM, CPU-only
-- ✅ **Low-cost** - $0.01 per consultation (99% cheaper than telemedicine)
-- ✅ **Simple interface** - Usable by community health workers
-- ✅ **Real impact** - Serves billions in underserved areas
-
-**→ See [RURAL_DEPLOYMENT.md](./RURAL_DEPLOYMENT.md) for complete rural optimization guide**
+- [Deployment Guide](docs/DEPLOYMENT.md) - Complete production deployment documentation
+- [Architecture](docs/ARCHITECTURE.md) - System architecture and design
+- [Setup Guide](docs/SETUP.md) - Installation and configuration
+- [Refactoring History](docs/REFACTORING.md) - Development history
 
 ---
 
-## 🎯 Project Overview
+## Architecture Overview
 
-MedAssist is an **advanced intelligent agentic workflow system** that reimagines clinical diagnosis and treatment planning through sophisticated multi-agent collaboration. The system deploys MedGemma as the foundation for multiple specialized agents that use **advanced reasoning strategies**, **inter-agent communication**, and **dynamic workflow adaptation** to provide comprehensive medical assistance.
+Multi-agent workflow system with specialized agents:
 
-## 🏆 Agentic Workflow Prize - Why This is Sophisticated
+- **Knowledge Agent**: Queries medical knowledge graph with BFS/DFS traversal
+- **Diagnostic Agent**: Analyzes symptoms and provides diagnostic reasoning
+- **Treatment Agent**: Recommends evidence-based treatment options
+- **Evidence Agent**: Retrieves scientific literature from PubMed
+- **Validator Agent**: Cross-validates findings for consistency
 
-### 🚀 Research-Backed Advanced Features
+### Key Features
 
-1. **Semantic Routing** (vLLM Semantic Router Architecture) 🎯
-   - **Signal-Based Selection**: Keyword matching + semantic similarity
-   - **Capability Matching**: Routes queries to agents with best expertise
-   - **Multi-Factor Scoring**: Combines signals, complexity, performance history
-   - **Confidence-Based Escalation**: Starts with fast agents, escalates if needed
-   - **Result**: Optimal agent selection with 0.95+ routing confidence
+- Medical knowledge graph with multi-hop reasoning
+- BioBERT-based named entity recognition
+- Graph-conditioned retrieval with confidence scoring
+- Agent collaboration and reflection
+- Production-ready infrastructure (API, monitoring, health checks)
 
-2. **Deep Confidence** (DeepConf, arXiv:2508.15260) 📊
-   - **Token-Level Tracking**: Monitors confidence at every generation step
-   - **Group Confidence**: Averages over 16-token windows for stability
-   - **Early Stopping**: Terminates low-quality reasoning paths early
-   - **Parallel Filtering**: Generates 8-512 traces, keeps only high-confidence
-   - **Weighted Voting**: Confidence-weighted majority voting
-   - **Result**: 84.7% token savings while improving accuracy to 99.9%
+---
 
-3. **Multi-Strategy Reasoning** 🧠
-   - **ReAct Pattern**: Reasoning + Acting with tool integration
-   - **Chain-of-Thought**: Step-by-step logical progression
-   - **Reflective Reasoning**: Self-critique and iterative improvement
-   - **Socratic Method**: Question-driven exploration
-   - Each agent selects optimal strategy for its domain
+## 📊 Performance
 
-4. **Inter-Agent Communication** 🤝
-   - Agents can consult each other for complex cases
-   - Diagnostic agent queries Knowledge agent for rare conditions
-   - Treatment agent requests clarification when uncertainty is high
-   - Full communication logs for transparency
+| Metric | AMG-RAG (Paper) | Baseline RAG |
+|--------|----------------|--------------|
+| MEDQA Accuracy | **73.9%** | 65.6% |
+| MEDMCQA Accuracy | **66.3%** | 58.1% |
+| F1 Score | **74.1%** | 67.2% |
+| Model Size | 8B params | 70B+ params |
 
-5. **Dynamic Workflow Adaptation** ⚡
-   - Real-time complexity assessment
-   - Automatic workflow selection based on case difficulty
-   - Dynamic addition of agents when needed
-   - Adaptive step sequencing
+**Key Advantage**: Achieves GPT-4 level performance with 10× smaller model
 
-4. **Sophisticated Confidence Quantification** 📊
-   - Uncertainty quantification with confidence intervals
-   - Bayesian confidence aggregation across agents
-   - Evidence grading (A-D scale)
-   - Agreement scores between agents
+---
 
-5. **Evidence Tracking & Provenance** 📚
-   - Every claim tracked with evidence
-   - Source attribution for all recommendations
-   - Evidence quality assessment
-   - Complete audit trail
+## Quick Start
 
-6. **Safety & Validation** 🛡️
-   - Automated contraindication checking
-   - Drug-drug interaction detection
-   - Allergy cross-referencing
-   - Red flag identification
-
-## 🧠 Architecture
-
-```
-Patient Input → Orchestrator Agent
-                     ↓
-        ┌────────────┼────────────┐
-        ↓            ↓            ↓
-    History      Diagnosis    Treatment
-     Agent        Agent         Agent
-        ↓            ↓            ↓
-     Tools        Tools        Tools
-     (Labs)     (Imaging)   (Guidelines)
-        ↓            ↓            ↓
-        └────────────┼────────────┘
-                     ↓
-            Integrated Report
-```
-
-### Specialized Agents
-
-1. **Orchestrator Agent**: Coordinates workflow and delegates to specialized agents
-2. **Medical History Agent**: Analyzes patient history and identifies risk factors
-3. **Diagnostic Agent**: Processes symptoms and suggests differential diagnoses
-4. **Treatment Agent**: Recommends evidence-based treatment plans
-5. **Imaging Agent**: Analyzes medical images (optional, for multimodal demos)
-6. **Knowledge Agent**: Queries medical literature and clinical guidelines
-
-## 🚀 Key Features
-
-- **Multi-Agent Coordination**: Agents communicate and share findings
-- **Tool Integration**: Agents can call external tools (databases, APIs, analysis functions)
-- **Memory Management**: Maintains patient context across agent interactions
-- **Reasoning Transparency**: Shows agent reasoning and decision paths
-- **Privacy-First**: Runs locally without sending data to external servers
-- **Modular Design**: Easy to add new agents and tools
-
-## 📋 Requirements
-
-- Python 3.10 or higher
-- CUDA-capable GPU recommended (CPU supported)
-- 8GB RAM minimum, 16GB recommended
-
-## 🔧 Installation
-
-### Option 1: Quick Setup with UV (Recommended - 10x faster! ⚡)
-
-```bash
-# Install UV (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Clone repository
-git clone https://github.com/YOUR_USERNAME/MedGemma-Agentic-Workflow.git
-cd MedGemma
-
-# Run setup script (creates venv + installs everything)
-./setup.sh
-
-# Or manually:
-uv venv
-source .venv/bin/activate
-uv pip install -e .
-```
-
-### Option 2: Traditional pip
+### Docker Compose (Recommended)
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/MedGemma-Agentic-Workflow.git
+git clone https://github.com/yourusername/MedGemma.git
 cd MedGemma
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Start all services
+docker-compose up -d
 
+# Check status
+curl http://localhost:8000/health
+
+# Query API
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What causes diabetes and how is it treated?"}'
+```
+
+### Local Development
+
+```bash
 # Install dependencies
 pip install -r requirements.txt
-# Or: pip install -e .
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
+
+# Run API server
+python run_server.py
+
+# Or run demo
+python examples/demo_agentic.py
 ```
 
-> 💡 **Why UV?** UV is 10-100x faster than pip, with better dependency resolution. See [SETUP.md](SETUP.md) for details.
+---
 
-## 💻 Usage
+## Usage
 
-### Quick Start
+### API Endpoints
+
+**POST /query** - Process medical question
+```bash
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What are the symptoms of diabetes?",
+    "include_trace": true,
+    "include_stats": true
+  }'
+```
+
+**GET /health** - System health check
+```bash
+curl http://localhost:8000/health
+```
+
+**GET /stats** - System statistics
+```bash
+curl http://localhost:8000/stats
+```
+
+**GET /docs** - Interactive API documentation
+
+### Python API
 
 ```python
-from medassist import MedAssistOrchestrator
+from medassist.agentic_orchestrator import AgenticMedicalOrchestrator
 
-# Initialize the orchestrator
-orchestrator = MedAssistOrchestrator(
-    model_name="google/medgemma-2b",
-    device="cuda"  # or "cpu"
+# Initialize orchestrator
+orchestrator = AgenticMedicalOrchestrator()
+
+# Process query
+result = orchestrator.execute_workflow(
+    "What causes diabetes and how is it treated?"
 )
 
-# Process a patient case
-case = {
-    "age": 45,
-    "gender": "female",
-    "symptoms": "persistent cough for 3 weeks, fever, night sweats",
-    "history": "non-smoker, no chronic conditions"
-}
-
-# Run agentic workflow
-result = orchestrator.process_case(case)
-
-print(result["diagnosis"])
-print(result["treatment_plan"])
-print(result["reasoning"])
+print(f"Answer: {result['answer']}")
+print(f"Confidence: {result['confidence']:.2f}")
+print(f"Agents used: {len(result['statistics'])} agents")
 ```
 
-### Run Demo Application
+---
+
+## Project Structure
+
+```
+MedGemma/
+├── medassist/              # Core package
+│   ├── config.py           # Configuration management
+│   ├── exceptions.py       # Error handling
+│   ├── logging_utils.py    # Logging utilities
+│   ├── health.py           # Health checks
+│   ├── knowledge_graph.py  # Knowledge graph
+│   ├── graph_retrieval.py  # Graph traversal
+│   ├── medical_ner.py      # Medical NER
+│   ├── pubmed_retrieval.py # PubMed API
+│   ├── agentic_workflow.py # Multi-agent system
+│   └── agentic_orchestrator.py # Main orchestrator
+├── tests/                  # Test suite
+│   ├── test_units.py
+│   ├── test_integration.py
+│   └── test_api.py
+├── examples/               # Demo scripts
+│   ├── demo_agentic.py
+│   ├── demo_amg_rag.py
+│   └── test_components.py
+├── docs/                   # Documentation
+│   ├── ARCHITECTURE.md
+│   ├── DEPLOYMENT.md
+│   ├── SETUP.md
+│   └── REFACTORING.md
+├── k8s/                    # Kubernetes configs
+│   └── deployment.yaml
+├── .github/workflows/      # CI/CD pipelines
+│   └── ci-cd.yml
+├── scripts/                # Utility scripts
+├── api.py                  # FastAPI application
+├── run_server.py           # Production server
+├── Dockerfile              # Container definition
+├── docker-compose.yml      # Multi-container setup
+├── requirements.txt        # Dependencies
+└── README.md               # This file
+```
+
+---
+
+## Testing
 
 ```bash
-python app.py
+# Run all tests
+pytest
+
+# Run specific test suites
+pytest tests/test_units.py          # Unit tests
+pytest tests/test_integration.py    # Integration tests
+pytest tests/test_api.py            # API tests
+
+# With coverage
+pytest --cov=medassist --cov-report=html
+
+# Skip slow tests
+pytest -m "not slow"
 ```
 
-Then open http://localhost:7860 in your browser.
+---
 
-## 📊 Use Cases
+## Deployment
 
-### 1. Primary Care Workflow
-- Patient intake → History review → Differential diagnosis → Treatment planning
-- **Time saved**: 15-20 minutes per patient visit
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete deployment guide.
 
-### 2. Emergency Department Triage
-- Rapid symptom assessment → Priority scoring → Initial treatment protocols
-- **Improvement**: 40% faster triage with maintained accuracy
+### Docker
 
-### 3. Specialist Consultation
-- Case review → Literature search → Evidence-based recommendations
-- **Benefit**: Accessible specialist-level insights in underserved areas
+```bash
+docker build -t medassist:latest .
+docker run -d -p 8000:8000 --env-file .env medassist:latest
+```
 
-## 🎬 Video Demo
+### Kubernetes
 
-[Link to 3-minute video demonstration]
+```bash
+kubectl apply -f k8s/deployment.yaml
+kubectl get pods -n medassist
+```
 
-## 📄 Technical Details
+---
 
-### Model Fine-tuning
-- Base model: MedGemma-2B
-- Fine-tuning dataset: Medical Q&A, clinical reasoning tasks
-- Training approach: LoRA with rank=16
-- Performance: 85% accuracy on medical reasoning benchmarks
+## Configuration
 
-### Agent Implementation
-- Framework: Custom implementation using LangChain for agent orchestration
-- Reasoning: ReAct (Reasoning + Acting) pattern
-- Tool integration: Function calling with JSON schema validation
+Environment variables (see [.env.example](.env.example)):
 
-### Deployment
-- Local inference: Optimized with bitsandbytes quantization
-- Response time: 3-5 seconds per agent action
-- Memory usage: <8GB GPU VRAM for 2B model
+```bash
+# Database
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
 
-## 🌟 Impact Potential
+# Model
+DEVICE=cuda  # or cpu
+MAX_DEPTH=3
+MAX_WIDTH=10
 
-### Target Users
-- Primary care physicians (700,000+ in US)
-- Nurse practitioners in rural clinics
-- Medical residents and students
+# API
+PUBMED_EMAIL=your@email.com
+LOG_LEVEL=INFO
+```
 
-### Estimated Impact
-- **Efficiency**: 60% reduction in diagnostic research time
-- **Accessibility**: Brings specialist-level reasoning to underserved areas
-- **Quality**: 25% improvement in catching rare condition indicators
-- **Cost**: Saves $15,000+ per provider annually in time savings
+---
 
-### Success Metrics
-- Diagnostic accuracy vs. specialist consensus
-- Time to treatment recommendation
-- Provider satisfaction scores
-- Patient outcome improvements
+## Contributing
 
-## 🔐 Privacy & Security
+1. Fork the repository
+2. Create feature branch
+3. Add tests for new features
+4. Ensure all tests pass
+5. Submit pull request
 
-- All processing runs locally (no data leaves device)
-- HIPAA-compliant architecture ready
-- Audit logging for all agent decisions
-- De-identification tools included
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For issues and questions, please open a GitHub issue.
+
+- **Confidence Propagation**: Aggregates uncertainty across hops
+
+### 4. Evidence Retrieval
+
+- **PubMed Search**: Retrieves supporting scientific literature
+- **Relevance Ranking**: Scores articles by query relevance
+- **Citation Tracking**: Links evidence to knowledge graph edges
+
+---
+
+## 🔬 Research Foundation
+
+Based on EMNLP 2025 paper:
+
+**"Agentic Medical Knowledge Graphs Enhance Medical Question Answering: Bridging the Gap Between LLMs and Evolving Medical Knowledge"**
+
+*Authors*: Mohammad Reza Rezaei, Reza Saadati Fard, Jayson L. Parker, Rahul G. Krishnan, Milad Lankarany
+
+*Key Contributions*:
+- Dynamic knowledge graphs that continuously update from latest research
+- Confidence-scored relationships with evidence tracking
+- Multi-hop reasoning outperforms flat retrieval by 8-10%
+- Achieves 74.1% F1 with only 8B parameters (vs 70B+ baselines)
+
+**Paper**: [EMNLP 2025 Findings #679](https://aclanthology.org/2025.findings-emnlp.679/)
+
+---
+
+## 🧪 Benchmarking
+
+### MEDQA Dataset
+
+```bash
+# Download MEDQA test set
+mkdir -p data/medqa
+wget https://github.com/jind11/MedQA/raw/master/data_clean/questions/US/test.jsonl -P data/medqa/
+
+# Run benchmark
+python scripts/benchmark_medqa.py
+```
+
+### Expected Results
+
+- **MEDQA Accuracy**: 73.9% (target from paper)
+- **MEDMCQA Accuracy**: 66.3%
+- **F1 Score**: 74.1%
+- **Processing Time**: <1s per query
+
+---
+
+## 🛠️ Development
+
+### Requirements
+
+- Python 3.9+
+- Neo4j 5.0+ (optional, for production)
+- 16GB RAM (recommended)
+- CUDA GPU (optional, for BioBERT)
+
+### Dependencies
+
+```
+torch>=2.0.0
+transformers>=4.40.0
+neo4j>=5.0.0
+biopython>=1.81
+sentence-transformers>=2.5.0
+faiss-cpu>=1.8.0
+```
+
+### Testing
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Test specific component
+pytest tests/test_knowledge_graph.py -v
+```
+
+---
 
 ## 📚 Documentation
 
-- [Agent Design Patterns](docs/agent_patterns.md)
-- [Tool Development Guide](docs/tools.md)
-- [Fine-tuning Guide](docs/finetuning.md)
-- [API Reference](docs/api.md)
-
-## 🧪 Evaluation Results
-
-| Metric | Value |
-|--------|-------|
-| Diagnostic Accuracy | 85.3% |
-| Treatment Appropriateness | 89.7% |
-| Time per Case | 4.2 min |
-| Provider Satisfaction | 4.6/5 |
-
-## 🤝 Team
-
-[Your team information]
-
-## 📝 License
-
-MIT License (adjust as needed)
-
-## 🙏 Acknowledgments
-
-- Google Health AI Developer Foundations for MedGemma
-- Kaggle for hosting this impactful challenge
-- [Any other acknowledgments]
-
-## 📞 Contact
-
-[Your contact information]
+- [AMG_RAG_ARCHITECTURE.md](AMG_RAG_ARCHITECTURE.md) - Detailed architecture documentation
+- [AMG_RAG_SETUP.md](AMG_RAG_SETUP.md) - Complete setup and deployment guide
+- [2025.findings-emnlp.679.pdf](2025.findings-emnlp.679.pdf) - Original research paper
 
 ---
 
-**Submission Package Contents**:
-- ✅ Video demonstration (3 min)
-- ✅ Public code repository (this repo)
-- ✅ Technical writeup (see WRITEUP.md)
-- ✅ Live demo (optional)
+## 🤝 Contributing
+
+Contributions welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **EMNLP 2025 Paper Authors**: Rezaei et al. for the AMG-RAG architecture
+- **BioBERT Team**: DMIS Lab for medical NER models
+- **Neo4j**: Graph database platform
+- **PubMed/NCBI**: Medical literature database
+- **Hugging Face**: Transformers library
+
+---
+
+## 📞 Contact
+
+For questions or issues:
+- Open an [issue](https://github.com/yourusername/MedGemma/issues)
+- Email: your.email@example.com
+
+---
+
+## ⭐ Citation
+
+If you use this code in your research, please cite:
+
+```bibtex
+@inproceedings{rezaei2025amgrag,
+  title={Agentic Medical Knowledge Graphs Enhance Medical Question Answering: Bridging the Gap Between LLMs and Evolving Medical Knowledge},
+  author={Rezaei, Mohammad Reza and Fard, Reza Saadati and Parker, Jayson L and Krishnan, Rahul G and Lankarany, Milad},
+  booktitle={Findings of the Association for Computational Linguistics: EMNLP 2025},
+  year={2025}
+}
+```
+
+---
+
+**Built with ❤️ for advancing medical AI**
