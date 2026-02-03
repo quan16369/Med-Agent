@@ -1,87 +1,53 @@
 version: '3.8'
 
 services:
-  medassist:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: medassist
-    restart: unless-stopped
+  neo4j:
+    image: neo4j:5.13.0
+    container_name: medassist-neo4j
     ports:
-      - "7860:7860"
-      - "9090:9090"
+      - "7474:7474"  # Browser
+      - "7687:7687"  # Bolt
     environment:
-      - MEDASSIST_ENV=production
-      - CLINIC_ID=${CLINIC_ID:-default_clinic}
-      - REGION=${REGION:-global}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - ENABLE_TELEMETRY=${ENABLE_TELEMETRY:-true}
-      - CLOUD_API_KEY=${CLOUD_API_KEY}
+      - NEO4J_AUTH=neo4j/medassist123
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./models:/app/models
-      - medassist-db:/var/lib/medassist
-      - medassist-logs:/var/log/medassist
-    networks:
-      - medassist-network
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 8G
-        reservations:
-          cpus: '2'
-          memory: 4G
+      - neo4j_data:/data
+      - neo4j_logs:/logs
     healthcheck:
-      test: ["CMD", "python", "-c", "from medassist.health_checks import HealthChecker; checker = HealthChecker(); status = checker.check_liveness(); exit(0 if status.healthy else 1)"]
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p medassist123 'RETURN 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  medassist:
+    build: .
+    container_name: medassist-app
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      - ENVIRONMENT=production
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=medassist123
+      - LOG_LEVEL=INFO
+      - DEVICE=cpu
+    volumes:
+      - ./logs:/app/logs
+      - model_cache:/root/.cache/huggingface
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "from medassist.health import HealthChecker; h = HealthChecker(); exit(0 if h.liveness().status.value == 'healthy' else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-
-  # Optional: Prometheus for metrics
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: medassist-prometheus
     restart: unless-stopped
-    ports:
-      - "9091:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-    networks:
-      - medassist-network
-    profiles:
-      - monitoring
-
-  # Optional: Grafana for visualization
-  grafana:
-    image: grafana/grafana:latest
-    container_name: medassist-grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
-    networks:
-      - medassist-network
-    profiles:
-      - monitoring
 
 volumes:
-  medassist-db:
-  medassist-logs:
-  prometheus-data:
-  grafana-data:
-
-networks:
-  medassist-network:
-    driver: bridge
+  neo4j_data:
+  neo4j_logs:
+  model_cache:
