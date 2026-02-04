@@ -3,20 +3,30 @@ FastAPI application for medical question answering service.
 Provides REST API endpoints for agentic workflow execution.
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field, validator
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 import time
 from datetime import datetime
 import logging
+import base64
+from pathlib import Path
 
 from medassist.config import get_config
 from medassist.logging_utils import setup_logging, get_logger
 from medassist.health import HealthChecker
 from medassist.exceptions import MedAssistError, handle_error
 from medassist.agentic_orchestrator import AgenticMedicalOrchestrator
+from medassist.mcp_server import MCPServer, MCPRequest
+from medassist.ingestion_pipeline import IngestionPipeline
+from medassist.multimodal_models import (
+    MultimodalMessage, 
+    TextContent, 
+    ImageUrlContent,
+    MedicalImageInput
+)
 
 # Setup logging
 setup_logging()
@@ -42,6 +52,8 @@ app.add_middleware(
 
 # Global orchestrator instance
 orchestrator: Optional[AgenticMedicalOrchestrator] = None
+mcp_server: Optional[MCPServer] = None
+ingestion_pipeline: Optional[IngestionPipeline] = None
 health_checker = HealthChecker()
 
 # Request/Response models
@@ -50,6 +62,8 @@ class QueryRequest(BaseModel):
     question: str = Field(..., min_length=10, max_length=1000, description="Medical question")
     include_trace: bool = Field(default=False, description="Include workflow trace in response")
     include_stats: bool = Field(default=False, description="Include agent statistics")
+    image_base64: Optional[str] = Field(None, description="Optional medical image (base64 encoded)")
+    image_metadata: Optional[Dict[str, Any]] = Field(None, description="Image metadata (type, body_part, etc.)")
     
     @validator('question')
     def validate_question(cls, v):
@@ -122,7 +136,7 @@ total_execution_time = 0.0
 @app.on_event("startup")
 async def startup_event():
     """Initialize orchestrator on startup"""
-    global orchestrator
+    global orchestrator, mcp_server, ingestion_pipeline
     try:
         logger.info("Starting Medical Knowledge Assistant API")
         config = get_config()
@@ -132,8 +146,21 @@ async def startup_event():
         orchestrator = AgenticMedicalOrchestrator()
         logger.info("Orchestrator initialized successfully")
         
+        # Initialize MCP Server
+        mcp_server = MCPServer(
+            knowledge_graph=orchestrator.kg,
+            graph_retriever=orchestrator.graph_retriever,
+            pubmed_retriever=orchestrator.pubmed,
+            ner=orchestrator.ner
+        )
+        logger.info("MCP Server initialized successfully")
+        
+        # Initialize ingestion pipeline
+        ingestion_pipeline = IngestionPipeline(kg=orchestrator.kg)
+        logger.info("Ingestion pipeline initialized successfully")
+        
     except Exception as e:
-        logger.error(f"Failed to initialize orchestrator: {e}")
+        logger.error(f"Failed to initialize services: {e}")
         raise
 
 @app.on_event("shutdown")
@@ -310,8 +337,167 @@ async def root():
         "version": "1.0.0",
         "status": "running",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
+        "features": {
+            "agentic_workflow": True,
+            "mcp_server": True,
+            "document_ingestion": True,
+            "knowledge_graph": True
+        }
     }
+
+
+# MCP Server Endpoints
+
+class MCPToolRequest(BaseModel):
+    """MCP tool request"""
+    tool: str = Field(..., description="Tool or skill name")
+    parameters: Dict[str, Any] = Field(..., description="Tool parameters")
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context")
+
+
+@app.post("/mcp")
+async def mcp_request(request: MCPToolRequest):
+    """
+    MCP Server endpoint.
+    Execute tools and skills via Model Context Protocol.
+    """
+    if mcp_server is None:
+        raise HTTPException(status_code=503, detail="MCP Server not initialized")
+    
+    try:
+        mcp_req = MCPRequest(
+            tool=request.tool,
+            parameters=request.parameters,
+            context=request.context
+        )
+        
+        response = mcp_server.process_request(mcp_req)
+        
+        return {
+            "success": response.success,
+            "result": response.result,
+            "metadata": response.metadata,
+            "error": response.error
+        }
+    except Exception as e:
+        logger.error(f"MCP request failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/mcp/capabilities")
+async def mcp_capabilities():
+    """Get MCP Server capabilities"""
+    if mcp_server is None:
+        raise HTTPException(status_code=503, detail="MCP Server not initialized")
+    
+    return mcp_server.get_capabilities()
+
+
+@app.get("/mcp/tools")
+async def list_mcp_tools():
+    """List available MCP tools"""
+    if mcp_server is None:
+        raise HTTPException(status_code=503, detail="MCP Server not initialized")
+    
+    return {"tools": mcp_server.list_tools()}
+
+
+@app.get("/mcp/skills")
+async def list_mcp_skills():
+    """List available MCP skills"""
+    if mcp_server is None:
+        raise HTTPException(status_code=503, detail="MCP Server not initialized")
+    
+    return {"skills": mcp_server.list_skills()}
+
+
+# Document Ingestion Endpoints
+
+class DocumentIngestionRequest(BaseModel):
+    """Document ingestion request with optional multimodal data"""
+    content: str = Field(..., min_length=10, description="Document content")
+    document_id: Optional[str] = Field(default=None, description="Document identifier")
+    images: Optional[List[Dict[str, Any]]] = Field(
+        default=None, 
+        description="List of images with base64 data and metadata"
+    )
+
+
+class BatchIngestionRequest(BaseModel):
+    """Batch document ingestion request"""
+    documents: List[Dict[str, Any]] = Field(
+        ..., 
+        description="List of documents with content, optional id, and optional images"
+    )
+
+
+@app.post("/ingest/document")
+async def ingest_document(request: DocumentIngestionRequest):
+    """
+    Ingest a single document into the knowledge graph.
+    Extracts entities and relationships.
+    Supports multimodal documents with text and images.
+    """
+    if ingestion_pipeline is None:
+        raise HTTPException(status_code=503, detail="Ingestion pipeline not initialized")
+    
+    try:
+        # Prepare document data
+        doc_data = request.content
+        if request.images:
+            # Convert to multimodal format
+            doc_data = {
+                "text": request.content,
+                "images": request.images
+            }
+        
+        kg_object = ingestion_pipeline.ingest_document(
+            doc_data,
+            request.document_id
+        )
+        
+        return {
+            "success": True,
+            "document_id": kg_object.source_document,
+            "entities_extracted": len(kg_object.entities),
+            "relationships_extracted": len(kg_object.relationships),
+            "timestamp": kg_object.timestamp
+        }
+    except Exception as e:
+        logger.error(f"Document ingestion failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/ingest/batch")
+async def ingest_batch(request: BatchIngestionRequest):
+    """
+    Ingest multiple documents in batch.
+    """
+    if ingestion_pipeline is None:
+        raise HTTPException(status_code=503, detail="Ingestion pipeline not initialized")
+    
+    try:
+        kg_objects = ingestion_pipeline.ingest_batch(request.documents)
+        
+        return {
+            "success": True,
+            "documents_processed": len(kg_objects),
+            "total_entities": sum(len(obj.entities) for obj in kg_objects),
+            "total_relationships": sum(len(obj.relationships) for obj in kg_objects)
+        }
+    except Exception as e:
+        logger.error(f"Batch ingestion failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/ingest/stats")
+async def ingestion_stats():
+    """Get ingestion pipeline statistics"""
+    if ingestion_pipeline is None:
+        raise HTTPException(status_code=503, detail="Ingestion pipeline not initialized")
+    
+    return ingestion_pipeline.get_statistics()
 
 if __name__ == "__main__":
     import uvicorn

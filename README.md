@@ -9,6 +9,7 @@ Production-ready multi-agent workflow system for medical question answering with
 
 - [Deployment Guide](docs/DEPLOYMENT.md) - Complete production deployment documentation
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
+- [MCP Architecture](docs/MCP_ARCHITECTURE.md) - Model Context Protocol implementation
 - [Setup Guide](docs/SETUP.md) - Installation and configuration
 - [Refactoring History](docs/REFACTORING.md) - Development history
 
@@ -16,13 +17,19 @@ Production-ready multi-agent workflow system for medical question answering with
 
 ## Architecture Overview
 
-Multi-agent workflow system with specialized agents:
+Multi-agent workflow system with Model Context Protocol (MCP):
 
+**Agents**:
 - **Knowledge Agent**: Queries medical knowledge graph with BFS/DFS traversal
 - **Diagnostic Agent**: Analyzes symptoms and provides diagnostic reasoning
 - **Treatment Agent**: Recommends evidence-based treatment options
 - **Evidence Agent**: Retrieves scientific literature from PubMed
 - **Validator Agent**: Cross-validates findings for consistency
+
+**MCP Components**:
+- **GraphRAG Ingestion**: Document processing and knowledge extraction
+- **MCP Server**: Tools (KG Search, KG Write, Web Search) and Skills (Update Memory, Write Content)
+- **MCP Client**: User interface and API access
 
 ### Key Features
 
@@ -30,6 +37,8 @@ Multi-agent workflow system with specialized agents:
 - BioBERT-based named entity recognition
 - Graph-conditioned retrieval with confidence scoring
 - Agent collaboration and reflection
+- Model Context Protocol for tool orchestration
+- Document ingestion pipeline (GraphRAG)
 - Production-ready infrastructure (API, monitoring, health checks)
 
 ---

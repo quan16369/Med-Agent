@@ -21,12 +21,14 @@ except ImportError:
 
 @dataclass
 class MedicalEntity:
-    """Extracted medical entity"""
+    """Extracted medical entity with AMG-RAG enhancements"""
     text: str
     entity_type: str  # disease, symptom, treatment, anatomy, biomarker
     start: int
     end: int
     confidence: float
+    relevance_score: float = 5.0  # AMG-RAG: 1-10 scale, 10=most relevant
+    description: Optional[str] = None  # AMG-RAG: Context-aware description
 
 
 class BioBERTNER:
@@ -284,18 +286,125 @@ class BioBERTNER:
 
 class HybridMedicalNER:
     """
-    Hybrid NER combining BioBERT with medical vocabulary
-    Uses BioBERT for primary extraction, falls back to rules for missed entities
+    Hybrid NER combining BioBERT with medical vocabulary.
+    Uses BioBERT for primary extraction, falls back to rules for missed entities.
+    Enhanced with AMG-RAG relevance scoring.
     """
     
     def __init__(
         self,
         biobert_model: str = "dmis-lab/biobert-base-cased-v1.1",
         device: str = "cpu",
-        use_hybrid: bool = True
+        use_hybrid: bool = True,
+        llm=None  # AMG-RAG: Optional LLM for relevance scoring
     ):
         self.biobert = BioBERTNER(biobert_model, device)
         self.use_hybrid = use_hybrid
+        self.llm = llm
+    
+    def extract(self, text: str, context: Optional[str] = None) -> List[MedicalEntity]:
+        """
+        Extract with hybrid approach and optional relevance scoring.
+        
+        Args:
+            text: Text to extract entities from
+            context: Optional context for relevance scoring (AMG-RAG)
+            
+        Returns:
+            List of MedicalEntity with relevance scores
+        """
+        
+        # Get BioBERT entities
+        entities = self.biobert.extract(text)
+        
+        if self.use_hybrid and self.biobert.use_transformer:
+            # Get rule-based entities
+            rule_entities = self.biobert._extract_rule_based(text)
+            
+            # Merge, avoiding duplicates
+            entities = self._merge_entities(entities, rule_entities)
+        
+        # AMG-RAG: Score relevance if context provided
+        if context and self.llm and entities:
+            entities = self._score_relevance(entities, text, context)
+        
+        return entities
+    
+    def _score_relevance(
+        self,
+        entities: List[MedicalEntity],
+        text: str,
+        context: str
+    ) -> List[MedicalEntity]:
+        """
+        Score entity relevance (1-10 scale) using LLM (AMG-RAG pattern).
+        
+        Relevance scale:
+        10 = directly related to question
+        7-9 = moderately relevant
+        4-6 = weakly relevant
+        1-3 = minimally relevant
+        """
+        try:
+            from langchain.prompts import PromptTemplate
+            from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+            
+            entity_names = [e.text for e in entities]
+            
+            # Create prompt for relevance scoring
+            schemas = [
+                ResponseSchema(
+                    name="scores",
+                    description="Relevance scores (1-10) for each entity",
+                    type="array"
+                ),
+                ResponseSchema(
+                    name="descriptions",
+                    description="Brief context-aware descriptions for each entity",
+                    type="array"
+                )
+            ]
+            
+            parser = StructuredOutputParser.from_response_schemas(schemas)
+            
+            prompt = PromptTemplate(
+                template="""Rate the relevance of each medical entity to the given context.
+                
+                Context: {context}
+                Text: {text}
+                Entities: {entities}
+                
+                For each entity, provide:
+                1. Relevance score (1-10): 10=directly related to question, 7-9=moderately relevant, 4-6=weakly relevant, 1-3=minimally relevant
+                2. Brief description of the entity in the context of the question (2-3 sentences)
+                
+                {format_instructions}""",
+                input_variables=["context", "text", "entities"],
+                partial_variables={"format_instructions": parser.get_format_instructions()}
+            )
+            
+            chain = prompt | self.llm | parser
+            result = chain.invoke({
+                "context": context,
+                "text": text,
+                "entities": entity_names
+            })
+            
+            scores = result.get("scores", [])
+            descriptions = result.get("descriptions", [])
+            
+            # Update entities with scores and descriptions
+            for i, entity in enumerate(entities):
+                if i < len(scores):
+                    entity.relevance_score = float(scores[i])
+                if i < len(descriptions):
+                    entity.description = descriptions[i]
+            
+        except Exception as e:
+            logger.warning(f"Relevance scoring failed: {e}")
+            # Keep default scores (5.0)
+        
+        return entities
     
     def extract(self, text: str) -> List[MedicalEntity]:
         """Extract with hybrid approach"""
