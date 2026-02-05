@@ -19,15 +19,15 @@ logger = get_logger(__name__)
 
 
 def interactive_mode(agent: SimpleAgent):
-    """Interactive mode - chat với agent"""
+    """Interactive mode - chat with agent"""
     print("\n" + "=" * 70)
-    print("🤖 Medical Agent - Interactive Mode")
+    print("Medical Agent - Interactive Mode")
     print("=" * 70)
     print("Commands:")
     print("  /ask <question>          - Hỏi câu hỏi medical")
     print("  /ingest <file.txt>       - Ingest document vào KG")
     print("  /explore <entity>        - Explore entity trong KG")
-    print("  /image <path> <question> - Hỏi với medical image")
+    print("  /image <path> <question> - Ask with medical image")
     print("  /quit                    - Thoát")
     print("=" * 70 + "\n")
     
@@ -39,69 +39,69 @@ def interactive_mode(agent: SimpleAgent):
                 continue
             
             if user_input == "/quit":
-                print("👋 Goodbye!")
+                print("Goodbye!")
                 break
             
             # Parse command
             if user_input.startswith("/ask "):
                 question = user_input[5:]
-                print(f"\n🤔 Processing: {question}")
+                print(f"\nProcessing: {question}")
                 result = agent.ask(question)
-                print(f"\n🤖 Agent: {result.get('answer', 'No answer')}")
+                print(f"\nAgent: {result.get('answer', 'No answer')}")
                 
                 if 'entities' in result:
-                    print(f"\n📊 Entities: {len(result['entities'])}")
+                    print(f"\nEntities: {len(result['entities'])}")
                 if 'relationships' in result:
-                    print(f"🔗 Relationships: {len(result['relationships'])}")
+                    print(f"Relationships: {len(result['relationships'])}")
             
             elif user_input.startswith("/ingest "):
                 file_path = user_input[8:].strip()
                 if Path(file_path).exists():
                     with open(file_path, 'r') as f:
                         text = f.read()
-                    print(f"\n📄 Ingesting: {file_path}")
+                    print(f"\nIngesting: {file_path}")
                     result = agent.ingest_document(text, doc_id=file_path)
-                    print(f"✅ Ingested: {result.get('entity_count', 0)} entities, {result.get('relationship_count', 0)} relationships")
+                    print(f"Ingested: {result.get('entity_count', 0)} entities, {result.get('relationship_count', 0)} relationships")
                 else:
-                    print(f"❌ File not found: {file_path}")
+                    print(f"File not found: {file_path}")
             
             elif user_input.startswith("/explore "):
                 entity = user_input[9:].strip()
-                print(f"\n🔍 Exploring: {entity}")
+                print(f"\nExploring: {entity}")
                 result = agent.explore_knowledge_graph(entity, max_depth=2)
                 
                 if result.get('success', True):
                     related = result.get('related_entities', [])
-                    print(f"✅ Found {len(related)} related entities:")
+                    print(f"Found {len(related)} related entities:")
                     for ent in related[:10]:  # Show first 10
                         print(f"  - {ent.get('name', 'N/A')} ({ent.get('type', 'N/A')})")
                 else:
-                    print(f"❌ Error: {result.get('error', 'Unknown')}")
+                    print(f"Error: {result.get('error', 'Unknown')}")
             
             elif user_input.startswith("/image "):
                 parts = user_input[7:].split(maxsplit=1)
                 if len(parts) == 2:
                     image_path, question = parts
                     if Path(image_path).exists():
-                        print(f"\n🖼️ Processing image: {image_path}")
+                        print(f"\nProcessing image: {image_path}")
                         result = agent.ask_with_image(question, image_path=image_path)
-                        print(f"\n🤖 Agent: {result.get('answer', 'No answer')}")
+                        print(f"\nAgent: {result.get('answer', 'No answer')}")
                     else:
-                        print(f"❌ Image not found: {image_path}")
+                        print(f"Image not found: {image_path}")
                 else:
-                    print("❌ Usage: /image <path> <question>")
+                    print("Usage: /image <path> <question>")
             
             else:
                 # Default: treat as question
-                print(f"\n🤔 Processing: {user_input}")
+                print(f"\nProcessing: {user_input}")
                 result = agent.ask(user_input)
-                print(f"\n🤖 Agent: {result.get('answer', 'No answer')}")
+                print(f"\nAgent: {result.get('answer', 'No answer')}")
         
         except KeyboardInterrupt:
-            print("\n\n👋 Goodbye!")
+            print("\n\nGoodbye!")
             break
         except Exception as e:
-            print(f"\n❌ Error: {e}")
+            print(f"\nError: {e}")
             logger.error(f"Interactive mode error: {e}", exc_info=True)
 
 
@@ -109,32 +109,32 @@ def single_question(agent: SimpleAgent, question: str):
     """Single question mode"""
     print(f"\n💬 Question: {question}")
     result = agent.ask(question)
-    print(f"\n🤖 Answer: {result.get('answer', 'No answer')}")
+    print(f"\nAnswer: {result.get('answer', 'No answer')}")
     
     if 'reasoning' in result:
         print(f"\n🧠 Reasoning:\n{result['reasoning']}")
     
     if 'entities' in result:
-        print(f"\n📊 Entities found: {len(result['entities'])}")
+        print(f"\nEntities found: {len(result['entities'])}")
         for ent in result['entities'][:5]:
             print(f"  - {ent.get('name', 'N/A')} ({ent.get('type', 'N/A')})")
     
     if 'relationships' in result:
-        print(f"\n🔗 Relationships found: {len(result['relationships'])}")
+        print(f"\nRelationships found: {len(result['relationships'])}")
 
 
 def ingest_file(agent: SimpleAgent, file_path: str):
     """Ingest file mode"""
     path = Path(file_path)
     if not path.exists():
-        print(f"❌ File not found: {file_path}")
+        print(f"File not found: {file_path}")
         return
     
-    print(f"\n📄 Reading: {file_path}")
+    print(f"\nReading: {file_path}")
     with open(path, 'r') as f:
         text = f.read()
     
-    print(f"📊 Content: {len(text)} characters")
+    print(f"Content: {len(text)} characters")
     print(f"🔄 Processing...")
     
     result = agent.ingest_document(
@@ -144,11 +144,11 @@ def ingest_file(agent: SimpleAgent, file_path: str):
     )
     
     if result.get('success', True):
-        print(f"\n✅ Ingestion complete!")
+        print(f"\nIngestion complete!")
         print(f"  Entities: {result.get('entity_count', 0)}")
         print(f"  Relationships: {result.get('relationship_count', 0)}")
     else:
-        print(f"\n❌ Ingestion failed: {result.get('error', 'Unknown')}")
+        print(f"\nIngestion failed: {result.get('error', 'Unknown')}")
 
 
 def main():

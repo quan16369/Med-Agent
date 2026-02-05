@@ -91,7 +91,7 @@ class MCPClient:
     def _send_local(self, request: MCPClientRequest) -> MCPClientResponse:
         """Send request to local server"""
         try:
-            from medassist.mcp_server import MCPRequest
+            from medassist.services.mcp_server import MCPRequest
             
             mcp_request = MCPRequest(
                 tool=request.tool,

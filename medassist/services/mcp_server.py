@@ -10,12 +10,12 @@ from enum import Enum
 import json
 import logging
 
-from medassist.knowledge_graph import MedicalKnowledgeGraph
-from medassist.graph_retrieval import GraphConditionalRetrieval
-from medassist.pubmed_retrieval import PubMedRetriever
-from medassist.medical_ner import MedicalNER
-from medassist.multimodal import MultimodalProcessor, MultimodalInput, ImageProcessor
-from medassist.multimodal_models import MultimodalMessage, ImageUrlContent, TextContent
+from medassist.models.knowledge_graph import MedicalKnowledgeGraph
+from medassist.tools.graph_retrieval import GraphConditionalRetrieval
+from medassist.tools.pubmed_retrieval import PubMedRetriever
+from medassist.tools.medical_ner import MedicalNER
+from medassist.tools.multimodal import MultimodalProcessor, MultimodalInput, ImageProcessor
+from medassist.models.multimodal_models import MultimodalMessage, ImageUrlContent, TextContent
 from medassist.logging_utils import get_logger
 
 logger = get_logger(__name__)

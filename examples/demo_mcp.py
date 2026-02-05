@@ -8,10 +8,10 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from medassist.mcp_server import MCPServer
-from medassist.mcp_client import MCPClient, InteractiveMCPClient
-from medassist.ingestion_pipeline import IngestionPipeline
-from medassist.knowledge_graph import MedicalKnowledgeGraph
+from medassist.services.mcp_server import MCPServer
+from medassist.services.mcp_client import MCPClient, InteractiveMCPClient
+from medassist.services.ingestion_pipeline import IngestionPipeline
+from medassist.models.knowledge_graph import MedicalKnowledgeGraph
 
 
 def demo_ingestion_pipeline():

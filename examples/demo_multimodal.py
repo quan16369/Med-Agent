@@ -8,15 +8,15 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from medassist.multimodal import (
+from medassist.tools.multimodal import (
     MultimodalProcessor,
     MultimodalInput,
     ImageProcessor,
     MultimodalEmbedder,
     process_multimodal
 )
-from medassist.mcp_server import MCPServer
-from medassist.mcp_client import MCPClient
+from medassist.services.mcp_server import MCPServer
+from medassist.services.mcp_client import MCPClient
 
 
 def demo_image_processing():

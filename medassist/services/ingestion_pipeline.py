@@ -8,9 +8,9 @@ from dataclasses import dataclass
 import re
 from datetime import datetime
 
-from medassist.medical_ner import MedicalNER
-from medassist.knowledge_graph import MedicalKnowledgeGraph
-from medassist.multimodal import MultimodalProcessor, MultimodalInput
+from medassist.tools.medical_ner import MedicalNER
+from medassist.models.knowledge_graph import MedicalKnowledgeGraph
+from medassist.tools.multimodal import MultimodalProcessor, MultimodalInput
 from medassist.logging_utils import get_logger
 
 logger = get_logger(__name__)

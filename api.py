@@ -18,10 +18,10 @@ from medassist.config import get_config
 from medassist.logging_utils import setup_logging, get_logger
 from medassist.health import HealthChecker
 from medassist.exceptions import MedAssistError, handle_error
-from medassist.agentic_orchestrator import AgenticMedicalOrchestrator
-from medassist.mcp_server import MCPServer, MCPRequest
-from medassist.ingestion_pipeline import IngestionPipeline
-from medassist.multimodal_models import (
+from medassist.core.agentic_orchestrator import AgenticMedicalOrchestrator
+from medassist.services.mcp_server import MCPServer, MCPRequest
+from medassist.services.ingestion_pipeline import IngestionPipeline
+from medassist.models.multimodal_models import (
     MultimodalMessage, 
     TextContent, 
     ImageUrlContent,

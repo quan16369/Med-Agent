@@ -10,8 +10,8 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from medassist.agentic_orchestrator import AgenticMedicalOrchestrator
-from medassist.knowledge_graph import MedicalKnowledgeGraph
+from medassist.core.agentic_orchestrator import AgenticMedicalOrchestrator
+from medassist.models.knowledge_graph import MedicalKnowledgeGraph
 from medassist.config import get_config
 from medassist.exceptions import MedAssistError
 

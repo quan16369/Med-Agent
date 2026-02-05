@@ -8,8 +8,8 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from medassist.ingestion_pipeline import IngestionPipeline, DocumentProcessor
-from medassist.knowledge_graph import MedicalKnowledgeGraph
+from medassist.services.ingestion_pipeline import IngestionPipeline, DocumentProcessor
+from medassist.models.knowledge_graph import MedicalKnowledgeGraph
 
 def test_ingestion():
     """Test data ingestion pipeline"""

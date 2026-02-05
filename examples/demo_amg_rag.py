@@ -9,9 +9,9 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from medassist.knowledge_graph import MedicalKnowledgeGraph, MedicalEntity, MedicalRelationship
-from medassist.graph_retrieval import GraphConditionalRetrieval
-from medassist.medical_ner import BioBERTNER
+from medassist.models.knowledge_graph import MedicalKnowledgeGraph, MedicalEntity, MedicalRelationship
+from medassist.tools.graph_retrieval import GraphConditionalRetrieval
+from medassist.tools.medical_ner import BioBERTNER
 
 
 def create_sample_medical_graph():

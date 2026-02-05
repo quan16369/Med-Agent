@@ -10,7 +10,7 @@ print("="*80)
 # Test 1: Knowledge Graph
 print("\n[1/3] Testing Medical Knowledge Graph...")
 try:
-    from medassist.knowledge_graph import MedicalKnowledgeGraph, MedicalEntity, MedicalRelationship
+    from medassist.models.knowledge_graph import MedicalKnowledgeGraph, MedicalEntity, MedicalRelationship
     
     kg = MedicalKnowledgeGraph(use_memory=True)
     kg.add_entity(MedicalEntity("d1", "Diabetes", "disease", ["DM"]))
@@ -25,7 +25,7 @@ except Exception as e:
 # Test 2: Medical NER
 print("\n[2/3] Testing Medical NER...")
 try:
-    from medassist.medical_ner import BioBERTNER
+    from medassist.tools.medical_ner import BioBERTNER
     
     ner = BioBERTNER()
     entities = ner.extract("diabetes causes numbness")
@@ -38,7 +38,7 @@ except Exception as e:
 # Test 3: Graph Retrieval
 print("\n[3/3] Testing Graph Retrieval...")
 try:
-    from medassist.graph_retrieval import GraphConditionalRetrieval
+    from medassist.tools.graph_retrieval import GraphConditionalRetrieval
     
     retrieval = GraphConditionalRetrieval(kg)
     result = retrieval.retrieve("What causes numbness?")

@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from medassist.agentic_orchestrator import AgenticMedicalOrchestrator
+from medassist.core.agentic_orchestrator import AgenticMedicalOrchestrator
 
 
 def print_section(title):

@@ -8,10 +8,10 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from medassist.medical_ner import MedicalNER
-from medassist.pubmed_retrieval import PubMedRetriever
-from medassist.graph_retrieval import GraphConditionedRetriever
-from medassist.knowledge_graph import MedicalKnowledgeGraph
+from medassist.tools.medical_ner import MedicalNER
+from medassist.tools.pubmed_retrieval import PubMedRetriever
+from medassist.tools.graph_retrieval import GraphConditionedRetriever
+from medassist.models.knowledge_graph import MedicalKnowledgeGraph
 
 class TestMedicalNER:
     """Test medical named entity recognition"""

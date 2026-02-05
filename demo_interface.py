@@ -145,10 +145,10 @@ class MedicalAgentDemo:
             # Ingest document
             self.agent.ingest_document(text, doc_id)
             
-            return f"✅ Document ingested successfully! (ID: {doc_id})\n\nEntities and relationships extracted and added to knowledge graph."
+            return f"Document ingested successfully! (ID: {doc_id})\n\nEntities and relationships extracted and added to knowledge graph."
             
         except Exception as e:
-            error_msg = f"❌ Error ingesting document: {str(e)}"
+            error_msg = f"Error ingesting document: {str(e)}"
             logger.error(error_msg)
             return error_msg
     
@@ -171,10 +171,10 @@ class MedicalAgentDemo:
             result = self.agent.explore_knowledge_graph(entity_name, max_depth)
             
             # Format output
-            output = f"🔍 Exploring Knowledge Graph: {entity_name}\n\n"
+            output = f"Exploring Knowledge Graph: {entity_name}\n\n"
             
             if "entities" in result:
-                output += f"📊 Found {len(result['entities'])} related entities:\n"
+                output += f"Found {len(result['entities'])} related entities:\n"
                 for entity in result['entities'][:10]:  # Limit to 10
                     output += f"  • [{entity['type']}] {entity['text']}\n"
                 
@@ -182,7 +182,7 @@ class MedicalAgentDemo:
                     output += f"  ... and {len(result['entities']) - 10} more\n"
             
             if "relationships" in result:
-                output += f"\n🔗 Found {len(result['relationships'])} relationships:\n"
+                output += f"\nFound {len(result['relationships'])} relationships:\n"
                 for rel in result['relationships'][:10]:  # Limit to 10
                     output += f"  • {rel['source']} → {rel['type']} → {rel['target']}\n"
                 
@@ -195,7 +195,7 @@ class MedicalAgentDemo:
             return output
             
         except Exception as e:
-            error_msg = f"❌ Error exploring graph: {str(e)}"
+            error_msg = f"Error exploring graph: {str(e)}"
             logger.error(error_msg)
             return error_msg
     
@@ -233,7 +233,7 @@ class MedicalAgentDemo:
                 
                 This demo showcases an advanced medical AI agent with:
                 - 🧠 Medical Knowledge Graph (AMG-RAG)
-                - 🔍 Hierarchical Retrieval (Code RAG)
+                - Hierarchical Retrieval (Code RAG)
                 - 👁️ Vision Support (Multimodal)
                 - 📚 PubMed Literature Integration
                 """,
@@ -259,7 +259,7 @@ class MedicalAgentDemo:
                                 placeholder="Provide any additional context or patient information...",
                                 lines=3
                             )
-                            ask_btn = gr.Button("🔍 Ask", variant="primary")
+                            ask_btn = gr.Button("Ask", variant="primary")
                         
                         with gr.Column(scale=3):
                             chatbot = gr.Chatbot(
@@ -294,7 +294,7 @@ class MedicalAgentDemo:
                     )
                 
                 # Tab 2: Multimodal Q&A
-                with gr.Tab("🖼️ Medical Image Analysis"):
+                with gr.Tab("Medical Image Analysis"):
                     gr.Markdown("Upload medical images and ask questions about them.")
                     
                     with gr.Row():
@@ -308,7 +308,7 @@ class MedicalAgentDemo:
                                 placeholder="e.g., What abnormalities are visible in this X-ray?",
                                 lines=3
                             )
-                            image_ask_btn = gr.Button("🔍 Analyze", variant="primary")
+                            image_ask_btn = gr.Button("Analyze", variant="primary")
                         
                         with gr.Column(scale=2):
                             image_chatbot = gr.Chatbot(
@@ -332,7 +332,7 @@ class MedicalAgentDemo:
                     )
                 
                 # Tab 3: Document Ingestion
-                with gr.Tab("📄 Ingest Medical Documents"):
+                with gr.Tab("Ingest Medical Documents"):
                     gr.Markdown("Add medical documents to the knowledge graph for enhanced Q&A.")
                     
                     with gr.Row():
@@ -390,7 +390,7 @@ class MedicalAgentDemo:
                                 step=1,
                                 label="Exploration Depth"
                             )
-                            explore_btn = gr.Button("🔍 Explore", variant="primary")
+                            explore_btn = gr.Button("Explore", variant="primary")
                         
                         with gr.Column(scale=2):
                             explore_output = gr.Textbox(
@@ -454,7 +454,7 @@ def main():
         interface = demo.create_interface()
         
         # Launch
-        print("\n✅ Starting demo interface...")
+        print("\nStarting demo interface...")
         print("\n🌐 Opening in browser...")
         print("\nPress Ctrl+C to stop\n")
         
@@ -466,9 +466,9 @@ def main():
         )
         
     except KeyboardInterrupt:
-        print("\n\n👋 Demo stopped by user")
+        print("\n\nDemo stopped by user")
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\nError: {e}")
         logger.exception("Failed to start demo")
         sys.exit(1)
 
