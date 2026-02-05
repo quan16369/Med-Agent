@@ -1,408 +1,396 @@
-# Medical Knowledge Assistant
+# MedGemma - Simple Medical Agent
 
-Production-ready multi-agent workflow system for medical question answering with knowledge graph reasoning.
+**Tập trung vào core agent functionality, loại bỏ production infrastructure**
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
+## 🎯 Overview
 
-## Quick Links
-
-- [Deployment Guide](docs/DEPLOYMENT.md) - Complete production deployment documentation
-- [Architecture](docs/ARCHITECTURE.md) - System architecture and design
-- [MCP Architecture](docs/MCP_ARCHITECTURE.md) - Model Context Protocol implementation
-- [Setup Guide](docs/SETUP.md) - Installation and configuration
-- [Refactoring History](docs/REFACTORING.md) - Development history
+Medical QA Agent với:
+- 🧠 **Multi-agent workflow** (5 specialized agents)
+- 🔗 **Knowledge Graph reasoning** (AMG-RAG)
+- 📊 **Entity extraction** (BioBERT)
+- 🖼️ **Multimodal support** (text + medical images)
+- ⚡ **Hierarchical retrieval** (Code RAG optimization)
 
 ---
 
-## Architecture Overview
+## 🚀 Quick Start
 
-Multi-agent workflow system with Model Context Protocol (MCP):
-
-**Agents**:
-- **Knowledge Agent**: Queries medical knowledge graph with BFS/DFS traversal
-- **Diagnostic Agent**: Analyzes symptoms and provides diagnostic reasoning
-- **Treatment Agent**: Recommends evidence-based treatment options
-- **Evidence Agent**: Retrieves scientific literature from PubMed
-- **Validator Agent**: Cross-validates findings for consistency
-
-**MCP Components**:
-- **GraphRAG Ingestion**: Document processing and knowledge extraction
-- **MCP Server**: Tools (KG Search, KG Write, Web Search) and Skills (Update Memory, Write Content)
-- **MCP Client**: User interface and API access
-
-### Key Features
-
-- Medical knowledge graph with multi-hop reasoning
-- BioBERT-based named entity recognition
-- Graph-conditioned retrieval with confidence scoring
-- Agent collaboration and reflection
-- Model Context Protocol for tool orchestration
-- Document ingestion pipeline (GraphRAG)
-- Production-ready infrastructure (API, monitoring, health checks)
-
----
-
-## 📊 Performance
-
-| Metric | AMG-RAG (Paper) | Baseline RAG |
-|--------|----------------|--------------|
-| MEDQA Accuracy | **73.9%** | 65.6% |
-| MEDMCQA Accuracy | **66.3%** | 58.1% |
-| F1 Score | **74.1%** | 67.2% |
-| Model Size | 8B params | 70B+ params |
-
-**Key Advantage**: Achieves GPT-4 level performance with 10× smaller model
-
----
-
-## Quick Start
-
-### Docker Compose (Recommended)
+### 1. Installation
 
 ```bash
-# Clone repository
+# Clone
 git clone https://github.com/yourusername/MedGemma.git
 cd MedGemma
 
-# Start all services
-docker-compose up -d
-
-# Check status
-curl http://localhost:8000/health
-
-# Query API
-curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What causes diabetes and how is it treated?"}'
-```
-
-### Local Development
-
-```bash
-# Install dependencies
+# Install
 pip install -r requirements.txt
 
-# Configure environment
+# Configure
 cp .env.example .env
-# Edit .env with your settings
+# Edit .env with your API keys (Groq, OpenAI, etc.)
+```
 
-# Run API server
-python run_server.py
+### 2. Run Agent
 
-# Or run demo
-python examples/demo_agentic.py
+#### Interactive Mode (Recommended)
+
+```bash
+python run_agent.py
+```
+
+Commands trong interactive mode:
+- `/ask <question>` - Hỏi câu hỏi medical
+- `/ingest <file.txt>` - Ingest document vào knowledge graph
+- `/explore <entity>` - Explore entity trong KG
+- `/image <path> <question>` - Hỏi với medical image
+- `/quit` - Thoát
+
+#### Single Question Mode
+
+```bash
+python run_agent.py --ask "What are the symptoms of diabetes?"
+```
+
+#### Ingest Document Mode
+
+```bash
+python run_agent.py --ingest medical_paper.txt
 ```
 
 ---
 
-## Usage
+## 📖 Usage Examples
 
-### API Endpoints
-
-**POST /query** - Process medical question
-```bash
-curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What are the symptoms of diabetes?",
-    "include_trace": true,
-    "include_stats": true
-  }'
-```
-
-**GET /health** - System health check
-```bash
-curl http://localhost:8000/health
-```
-
-**GET /stats** - System statistics
-```bash
-curl http://localhost:8000/stats
-```
-
-**GET /docs** - Interactive API documentation
-
-### Python API
+### Example 1: Simple Q&A
 
 ```python
-from medassist.agentic_orchestrator import AgenticMedicalOrchestrator
+from simple_agent import SimpleAgent
 
-# Initialize orchestrator
-orchestrator = AgenticMedicalOrchestrator()
+# Initialize agent
+agent = SimpleAgent()
 
-# Process query
-result = orchestrator.execute_workflow(
-    "What causes diabetes and how is it treated?"
+# Ask question
+result = agent.ask(
+    question="What causes type 2 diabetes?",
+    context="Patient is 45 years old, overweight"
 )
 
-print(f"Answer: {result['answer']}")
-print(f"Confidence: {result['confidence']:.2f}")
-print(f"Agents used: {len(result['statistics'])} agents")
+print(result['answer'])
+print(f"Entities: {len(result['entities'])}")
+print(f"Relationships: {len(result['relationships'])}")
+```
+
+### Example 2: Multimodal Q&A (với medical image)
+
+```python
+# Ask with X-ray image
+result = agent.ask_with_image(
+    question="What abnormalities are visible in this chest X-ray?",
+    image_path="chest_xray.jpg"
+)
+
+print(result['answer'])
+print(result['visual_analysis'])
+```
+
+### Example 3: Document Ingestion
+
+```python
+# Ingest medical document vào knowledge graph
+result = agent.ingest_document(
+    text="Diabetes mellitus causes hyperglycemia. Metformin treats diabetes by reducing glucose production.",
+    doc_id="doc_001",
+    metadata={"source": "medical_textbook", "year": 2023}
+)
+
+print(f"Extracted {result['entity_count']} entities")
+print(f"Found {result['relationship_count']} relationships")
+```
+
+### Example 4: Knowledge Graph Exploration
+
+```python
+# Explore entity trong knowledge graph
+result = agent.explore_knowledge_graph(
+    entity_name="diabetes",
+    max_depth=2
+)
+
+for entity in result['related_entities']:
+    print(f"- {entity['name']} ({entity['type']})")
+    print(f"  Relationship: {entity['relationship']}")
 ```
 
 ---
 
-## Project Structure
+## 🏗️ Architecture
+
+### Multi-Agent Workflow (5 Agents)
+
+```
+User Question
+     ↓
+Orchestrator → Knowledge Agent    → Query KG
+             → Diagnostic Agent   → Analyze symptoms  
+             → Treatment Agent    → Recommend treatments
+             → Evidence Agent     → Retrieve papers (PubMed)
+             → Validator Agent    → Cross-validate findings
+     ↓
+Final Answer + Reasoning
+```
+
+### Knowledge Graph Pipeline (AMG-RAG)
+
+```
+Document → Entity Extraction (BioBERT)
+        → Relationship Inference (Pattern matching + Proximity)
+        → Bidirectional Relationships (causes ↔ caused_by)
+        → Relevance Scoring (LLM-based 1-10)
+        → Knowledge Graph Storage
+```
+
+### Hierarchical Retrieval (Code RAG)
+
+```
+Query → Semantic Alignment Distillation
+      → Redundancy-Aware Pruning
+      → Topological Proximity Metric
+      → Diversity-Aware Reranking
+      → Top-K Results
+```
+
+---
+
+## 🔧 Configuration
+
+Edit `.env` file:
+
+```bash
+# LLM Provider
+GROQ_API_KEY=your_groq_key
+OPENAI_API_KEY=your_openai_key  # optional
+
+# Model Selection
+LLM_MODEL=llama-3.1-70b-versatile
+TEMPERATURE=0.7
+
+# Knowledge Graph
+KG_TYPE=networkx  # or neo4j
+NEO4J_URI=bolt://localhost:7687  # if using neo4j
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=password
+
+# Retrieval Settings
+MAX_ENTITIES=50
+MAX_RELATIONSHIPS=100
+CONFIDENCE_THRESHOLD=0.5
+```
+
+---
+
+## 📊 Features
+
+### ✅ Implemented
+
+- **Multi-Agent Workflow**: 5 specialized agents với collaboration
+- **Knowledge Graph**: Entity extraction + relationship inference
+- **Bidirectional Relationships**: A→B and B→A với evidence tracking
+- **Relevance Scoring**: LLM-based 1-10 scoring
+- **Multimodal Support**: Text + medical images (X-ray, CT, MRI)
+- **Hierarchical Retrieval**: 4-stage optimization pipeline
+- **PubMed Integration**: Scientific literature retrieval
+- **MCP Architecture**: Tools (KG Search, KG Write, Web Search) + Skills
+
+### 🔄 In Progress
+
+- Entity summarization (AMG-RAG feature)
+- Confidence propagation in graph traversal
+- Vision model integration (CheXNet, BiomedCLIP)
+
+---
+
+## 📈 Performance
+
+### Expected Improvements
+
+| Feature | Metric | Improvement |
+|---------|--------|-------------|
+| Redundancy Pruning | Precision | +15-20% |
+| Diversity Reranking | Result Diversity | +30% |
+| Semantic Alignment | Relevance | +10% |
+| Search Space Reduction | Speed | 2x faster |
+
+### Benchmarks
+
+| Dataset | Target Accuracy |
+|---------|----------------|
+| MEDQA | 74.1% F1 |
+| MEDMCQA | 66.34% |
+
+---
+
+## 🗂️ Project Structure
 
 ```
 MedGemma/
-├── medassist/              # Core package
-│   ├── config.py           # Configuration management
-│   ├── exceptions.py       # Error handling
-│   ├── logging_utils.py    # Logging utilities
-│   ├── health.py           # Health checks
-│   ├── knowledge_graph.py  # Knowledge graph
-│   ├── graph_retrieval.py  # Graph traversal
-│   ├── medical_ner.py      # Medical NER
-│   ├── pubmed_retrieval.py # PubMed API
-│   ├── agentic_workflow.py # Multi-agent system
-│   └── agentic_orchestrator.py # Main orchestrator
-├── tests/                  # Test suite
-│   ├── test_units.py
-│   ├── test_integration.py
-│   └── test_api.py
-├── examples/               # Demo scripts
-│   ├── demo_agentic.py
-│   ├── demo_amg_rag.py
-│   └── test_components.py
-├── docs/                   # Documentation
-│   ├── ARCHITECTURE.md
-│   ├── DEPLOYMENT.md
-│   ├── SETUP.md
-│   └── REFACTORING.md
-├── k8s/                    # Kubernetes configs
-│   └── deployment.yaml
-├── .github/workflows/      # CI/CD pipelines
-│   └── ci-cd.yml
-├── scripts/                # Utility scripts
-├── api.py                  # FastAPI application
-├── run_server.py           # Production server
-├── Dockerfile              # Container definition
-├── docker-compose.yml      # Multi-container setup
-├── requirements.txt        # Dependencies
-└── README.md               # This file
+├── simple_agent.py              # Simple agent interface (main entry)
+├── run_agent.py                 # CLI runner (interactive mode)
+├── medassist/
+│   ├── agentic_orchestrator.py  # Multi-agent orchestrator
+│   ├── agentic_workflow.py      # Agent collaboration logic
+│   ├── knowledge_graph.py       # KG implementation
+│   ├── medical_ner.py           # BioBERT entity extraction
+│   ├── ingestion_pipeline.py    # Document processing
+│   ├── graph_retrieval.py       # Graph-based retrieval
+│   ├── hierarchical_retrieval.py # Code RAG optimization
+│   ├── multimodal.py            # Image processing
+│   ├── multimodal_models.py     # Multimodal content models
+│   ├── medical_image_search.py  # Medical image search
+│   ├── pubmed_retrieval.py      # PubMed API integration
+│   ├── mcp_server.py            # MCP server (tools + skills)
+│   └── mcp_client.py            # MCP client
+├── examples/
+│   ├── demo_agentic.py          # Demo agentic workflow
+│   └── demo_multimodal_api.py   # Demo multimodal features
+├── requirements.txt
+├── .env.example
+└── README.md
 ```
 
 ---
 
-## Testing
+## 🧪 Examples
+
+### Run Demo
 
 ```bash
-# Run all tests
-pytest
+# Demo simple agent
+python simple_agent.py
 
-# Run specific test suites
-pytest tests/test_units.py          # Unit tests
-pytest tests/test_integration.py    # Integration tests
-pytest tests/test_api.py            # API tests
+# Demo agentic workflow
+python examples/demo_agentic.py
 
-# With coverage
-pytest --cov=medassist --cov-report=html
-
-# Skip slow tests
-pytest -m "not slow"
+# Demo multimodal
+python examples/demo_multimodal_api.py
 ```
 
----
-
-## Deployment
-
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete deployment guide.
-
-### Docker
+### Test Ingestion Pipeline
 
 ```bash
-docker build -t medassist:latest .
-docker run -d -p 8000:8000 --env-file .env medassist:latest
-```
+python -c "
+from simple_agent import SimpleAgent
 
-### Kubernetes
+agent = SimpleAgent()
 
-```bash
-kubectl apply -f k8s/deployment.yaml
-kubectl get pods -n medassist
-```
+# Ingest sample document
+result = agent.ingest_document(
+    text='Diabetes causes hyperglycemia. Metformin treats diabetes.',
+    doc_id='sample_001'
+)
 
----
-
-## Configuration
-
-Environment variables (see [.env.example](.env.example)):
-
-```bash
-# Database
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=your_password
-
-# Model
-DEVICE=cuda  # or cpu
-MAX_DEPTH=3
-MAX_WIDTH=10
-
-# API
-PUBMED_EMAIL=your@email.com
-LOG_LEVEL=INFO
-```
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Add tests for new features
-4. Ensure all tests pass
-5. Submit pull request
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For issues and questions, please open a GitHub issue.
-
-- **Confidence Propagation**: Aggregates uncertainty across hops
-
-### 4. Evidence Retrieval
-
-- **PubMed Search**: Retrieves supporting scientific literature
-- **Relevance Ranking**: Scores articles by query relevance
-- **Citation Tracking**: Links evidence to knowledge graph edges
-
----
-
-## 🔬 Research Foundation
-
-Based on EMNLP 2025 paper:
-
-**"Agentic Medical Knowledge Graphs Enhance Medical Question Answering: Bridging the Gap Between LLMs and Evolving Medical Knowledge"**
-
-*Authors*: Mohammad Reza Rezaei, Reza Saadati Fard, Jayson L. Parker, Rahul G. Krishnan, Milad Lankarany
-
-*Key Contributions*:
-- Dynamic knowledge graphs that continuously update from latest research
-- Confidence-scored relationships with evidence tracking
-- Multi-hop reasoning outperforms flat retrieval by 8-10%
-- Achieves 74.1% F1 with only 8B parameters (vs 70B+ baselines)
-
-**Paper**: [EMNLP 2025 Findings #679](https://aclanthology.org/2025.findings-emnlp.679/)
-
----
-
-## 🧪 Benchmarking
-
-### MEDQA Dataset
-
-```bash
-# Download MEDQA test set
-mkdir -p data/medqa
-wget https://github.com/jind11/MedQA/raw/master/data_clean/questions/US/test.jsonl -P data/medqa/
-
-# Run benchmark
-python scripts/benchmark_medqa.py
-```
-
-### Expected Results
-
-- **MEDQA Accuracy**: 73.9% (target from paper)
-- **MEDMCQA Accuracy**: 66.3%
-- **F1 Score**: 74.1%
-- **Processing Time**: <1s per query
-
----
-
-## 🛠️ Development
-
-### Requirements
-
-- Python 3.9+
-- Neo4j 5.0+ (optional, for production)
-- 16GB RAM (recommended)
-- CUDA GPU (optional, for BioBERT)
-
-### Dependencies
-
-```
-torch>=2.0.0
-transformers>=4.40.0
-neo4j>=5.0.0
-biopython>=1.81
-sentence-transformers>=2.5.0
-faiss-cpu>=1.8.0
-```
-
-### Testing
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Test specific component
-pytest tests/test_knowledge_graph.py -v
+print(f'Entities: {result[\"entity_count\"]}')
+print(f'Relationships: {result[\"relationship_count\"]}')
+"
 ```
 
 ---
 
 ## 📚 Documentation
 
-- [AMG_RAG_ARCHITECTURE.md](AMG_RAG_ARCHITECTURE.md) - Detailed architecture documentation
-- [AMG_RAG_SETUP.md](AMG_RAG_SETUP.md) - Complete setup and deployment guide
-- [2025.findings-emnlp.679.pdf](2025.findings-emnlp.679.pdf) - Original research paper
+- **Architecture**: Xem [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **MCP Architecture**: Xem [docs/MCP_ARCHITECTURE.md](docs/MCP_ARCHITECTURE.md)
+- **Setup Guide**: Xem [docs/SETUP.md](docs/SETUP.md)
+
+---
+
+## 🔬 Research Papers
+
+System kết hợp 3 papers:
+
+1. **AMG-RAG** (arxiv:2410.03883)
+   - Agentic Medical Knowledge Graphs
+   - Entity extraction + relationship inference
+   - Bidirectional relationships with evidence
+
+2. **Kubrick AI Multimodal Course**
+   - Multimodal content models
+   - Base64 image handling
+   - Medical image search patterns
+
+3. **Code RAG** (arxiv:2508.10068)
+   - Hierarchical retrieval optimization
+   - Semantic alignment + redundancy pruning
+   - Topological proximity + diversity reranking
+
+---
+
+## 🛠️ Development
+
+### Add New Agent
+
+```python
+# In medassist/agentic_workflow.py
+class CustomAgent(MedicalAgent):
+    def analyze(self, query: str, context: Dict) -> AgentResponse:
+        # Your logic here
+        return AgentResponse(
+            agent_name="CustomAgent",
+            result="...",
+            confidence=0.8
+        )
+```
+
+### Extend Knowledge Graph
+
+```python
+# Add custom relationship type
+from medassist.knowledge_graph import KnowledgeGraph
+
+kg = KnowledgeGraph()
+kg.add_relationship(
+    source="Disease A",
+    target="Symptom B",
+    relation_type="has_symptom",
+    confidence=0.9,
+    evidence="Clinical observation"
+)
+```
+
+---
+
+## 📝 License
+
+MIT License - see [LICENSE](LICENSE)
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions welcome! Focus areas:
+- Vision model integration
+- Entity summarization
+- Confidence propagation
+- Benchmarking on medical datasets
 
 ---
 
-## 📄 License
+## 💡 Tips
 
-This project is licensed under the Apache License 2.0 - see [LICENSE](LICENSE) file for details.
+**Q: Agent chậm?**
+- Giảm `MAX_ENTITIES` và `MAX_RELATIONSHIPS` trong `.env`
+- Tăng `CONFIDENCE_THRESHOLD` để filter entities
 
----
+**Q: Kết quả không accurate?**
+- Ingest thêm medical documents vào KG
+- Adjust `TEMPERATURE` (0.3-0.7 for medical domain)
+- Enable `RELEVANCE_SCORING` trong config
 
-## 🙏 Acknowledgments
-
-- **EMNLP 2025 Paper Authors**: Rezaei et al. for the AMG-RAG architecture
-- **BioBERT Team**: DMIS Lab for medical NER models
-- **Neo4j**: Graph database platform
-- **PubMed/NCBI**: Medical literature database
-- **Hugging Face**: Transformers library
-
----
-
-## 📞 Contact
-
-For questions or issues:
-- Open an [issue](https://github.com/yourusername/MedGemma/issues)
-- Email: your.email@example.com
+**Q: Muốn dùng Neo4j thay vì NetworkX?**
+- Set `KG_TYPE=neo4j` trong `.env`
+- Configure Neo4j connection settings
 
 ---
 
-## ⭐ Citation
+## 📧 Contact
 
-If you use this code in your research, please cite:
-
-```bibtex
-@inproceedings{rezaei2025amgrag,
-  title={Agentic Medical Knowledge Graphs Enhance Medical Question Answering: Bridging the Gap Between LLMs and Evolving Medical Knowledge},
-  author={Rezaei, Mohammad Reza and Fard, Reza Saadati and Parker, Jayson L and Krishnan, Rahul G and Lankarany, Milad},
-  booktitle={Findings of the Association for Computational Linguistics: EMNLP 2025},
-  year={2025}
-}
-```
-
----
-
-**Built with ❤️ for advancing medical AI**
+Issues: [GitHub Issues](https://github.com/yourusername/MedGemma/issues)
