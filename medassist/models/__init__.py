@@ -1,22 +1,11 @@
-# Models package
-from .multimodal_models import (
-    TextContent,
-    ImageUrlContent,
-    MultimodalMessage,
-    MedicalImageInput
-)
-from .knowledge_graph import (
-    MedicalKnowledgeGraph,
-    MedicalEntity,
-    MedicalRelationship
-)
+"""
+Medical data models for AMG-RAG
+"""
+
+from .entities import MedicalEntity, MedicalRelation, MEDICAL_RELATION_TYPES
 
 __all__ = [
-    'TextContent',
-    'ImageUrlContent',
-    'MultimodalMessage',
-    'MedicalImageInput',
-    'MedicalKnowledgeGraph',
-    'MedicalEntity',
-    'MedicalRelationship'
+    "MedicalEntity",
+    "MedicalRelation", 
+    "MEDICAL_RELATION_TYPES"
 ]

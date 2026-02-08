@@ -1,16 +1,19 @@
-# Core orchestration
-from .langgraph_orchestrator import (
-    LangGraphMedicalOrchestrator,
-    AgentState,
-    MedicalAgentNodes
+"""
+Core AMG-RAG components: Knowledge Graph, LLM chains, and main system.
+"""
+
+from medassist.core.knowledge_graph import MedicalKnowledgeGraph
+from medassist.core.chains import EntityExtractor, RelationExtractor, EntitySummarizer
+from medassist.core.multimodal_chains import (
+    MedicalImageAnalyzer,
+    MultimodalReportGenerator
 )
-from .agentic_orchestrator import AgenticMedicalOrchestrator
-from .amg_rag_orchestrator import AMGRAGOrchestrator
 
 __all__ = [
-    'LangGraphMedicalOrchestrator',
-    'AgentState',
-    'MedicalAgentNodes',
-    'AgenticMedicalOrchestrator',
-    'AMGRAGOrchestrator'
+    "MedicalKnowledgeGraph",
+    "EntityExtractor",
+    "RelationExtractor",
+    "EntitySummarizer",
+    "MedicalImageAnalyzer",
+    "MultimodalReportGenerator"
 ]

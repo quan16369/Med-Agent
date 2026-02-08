@@ -1,70 +1,49 @@
-# Core ML Libraries
-transformers>=4.40.0
-torch>=2.0.0
-accelerate>=0.27.0
-bitsandbytes>=0.41.0
+# AMG-RAG with MedGemma for Kaggle Challenge
+# Competition: https://www.kaggle.com/competitions/med-gemma-impact-challenge
+# HAI-DEF Models: https://developers.google.com/health-ai-developer-foundations
 
-# Web Interface
-gradio>=4.0.0
-
-# Data Processing
-numpy>=1.24.0
-pandas>=2.0.0
-pyyaml>=6.0
-
-# Utilities
-requests>=2.31.0
-python-dotenv>=1.0.0
-pydantic>=2.0.0
-pillow>=10.0.0
-
-# Embeddings (for semantic similarity in routing)
-sentence-transformers>=2.5.0
-faiss-cpu>=1.8.0
-
-# LangGraph Multi-Agent Framework (Open-Source)
-langgraph>=0.2.0
+# Core LangChain & LangGraph for Agentic Workflows
 langchain>=0.3.0
 langchain-core>=0.3.0
 langchain-community>=0.3.0
-langchain-ollama>=0.2.0  # Open-source local LLMs
+langgraph>=0.2.0
 
-# Optional: OpenAI/Groq (if API keys available)
-langchain-openai>=0.2.0
-langchain-groq>=0.2.0
+# Google HAI-DEF Models (MedGemma, TxGemma)
+langchain-google-genai>=2.0.0      # For Google GenAI API
+langchain-google-vertexai>=2.0.0   # For Vertex AI deployment
+google-generativeai>=0.8.0         # Google AI SDK
 
-# Open-Source Embeddings
-sentence-transformers>=2.5.0
-
-# Medical NER (optional BioBERT fallback)
-transformers>=4.40.0
-torch>=2.0.0
-accelerate>=0.27.0
+# Alternative LLM providers for local inference
+langchain-ollama>=0.2.0            # For local Ollama (MedGemma GGUF)
+langchain-openai>=0.2.0            # For OpenAI-compatible APIs
+vllm>=0.6.0                        # For vLLM server inference
 
 # Knowledge Graph
-neo4j>=5.0.0
-py2neo>=2021.2.3
+networkx>=3.0.0
 
-# Additional utilities
-beautifulsoup4>=4.12.0
-loguru>=0.7.0
-tqdm>=4.65.0
+# Embeddings & Vector Database
+sentence-transformers>=2.5.0       # For semantic similarity
+transformers>=4.40.0               # Hugging Face transformers
+langchain-huggingface>=0.1.0       # HF embeddings integration
+langchain-chroma>=0.1.0            # Chroma vector store
+chromadb>=0.5.0                    # Vector database
+faiss-cpu>=1.8.0                   # Alternative vector DB
+
+# Multimodal Support (Image Processing)
+pillow>=10.0.0                     # Image loading and processing
+opencv-python>=4.8.0               # Medical image preprocessing (optional)
+
+# Data Processing & Evaluation
+numpy>=1.24.0
+pandas>=2.0.0
+datasets>=2.14.0                   # For MEDQA dataset
+scikit-learn>=1.3.0                # For evaluation metrics
+
+# Medical Knowledge Retrieval
+requests>=2.31.0                   # PubMed API
+wikipedia>=1.4.0                   # Wikipedia medical articles
+wikipediaapi>=0.6.0                # Wikipedia API client
+beautifulsoup4>=4.12.0             # Web scraping
 
 # Testing
 pytest>=7.4.0
-pytest-cov>=4.1.0
-pytest-timeout>=2.1.0
-
-# Production API
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-redis>=5.0.0
-prometheus-client>=0.19.0
-
-# Code Quality
-black>=23.0.0
-flake8>=6.0.0
-isort>=5.12.0
-mypy>=1.5.0
-
-

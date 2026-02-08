@@ -1,37 +1,29 @@
 """
-AMG-RAG Medical Knowledge Graph System
-Based on EMNLP 2025 paper architecture
+MedAssist: Agentic Medical Graph-RAG with MedGemma
+
+Competition: https://www.kaggle.com/competitions/med-gemma-impact-challenge
+HAI-DEF Models: https://developers.google.com/health-ai-developer-foundations
+Original Repository: https://github.com/MrRezaeiUofT/AMG-RAG
+
+An agentic workflow system for medical question answering using:
+- MedGemma models (Google HAI-DEF)
+- LangChain & LangGraph for orchestration
+- NetworkX for knowledge graphs
+- PubMed for evidence retrieval
 """
 
-from .knowledge_graph import MedicalKnowledgeGraph, MedicalEntity, MedicalRelationship, KnowledgePath
-from .graph_retrieval import GraphConditionalRetrieval, RetrievalResult, MultiHopReasoning
-from .medical_ner import BioBERTNER
-from .pubmed_retrieval import PubMedRetriever, EvidenceRetriever
-from .amg_rag_orchestrator import AMGRAGOrchestrator, AMGRAGResponse
+__version__ = "0.2.0"
+
+from medassist.amg_rag import AMG_RAG_System
+from medassist.llm.medgemma import get_medgemma_llm
+from medassist.core.knowledge_graph import MedicalKnowledgeGraph
+from medassist.models.entities import MedicalEntity, MedicalRelation
 
 __all__ = [
-    # Knowledge Graph
-    'MedicalKnowledgeGraph',
-    'MedicalEntity',
-    'MedicalRelationship',
-    'KnowledgePath',
-    
-    # Retrieval
-    'GraphConditionalRetrieval',
-    'RetrievalResult',
-    'MultiHopReasoning',
-    
-    # NER
-    'BioBERTNER',
-    
-    # Evidence
-    'PubMedRetriever',
-    'EvidenceRetriever',
-    
-    # Orchestrator
-    'AMGRAGOrchestrator',
-    'AMGRAGResponse',
+    "AMG_RAG_System",
+    "get_medgemma_llm",
+    "MedicalKnowledgeGraph",
+    "MedicalEntity",
+    "MedicalRelation"
 ]
-
-__version__ = '1.0.0'
 
